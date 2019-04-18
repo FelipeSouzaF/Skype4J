@@ -85,7 +85,7 @@ public class Factory {
         Validate.isTrue(chat instanceof ChatImpl, "Chat must be instanceof ChatImpl");
         Validate.notNull(user, "User must not be null");
 
-        if (("8:" + chat.getClient().getUsername()).equals(user.getId())) {
+        if (("8:" + chat.getClient().getLiveUsername()).equals(user.getId())) {
             return new SentMessageImpl(chat, user, id, clientId, time, message, skype);
         } else {
             return new ReceivedMessageImpl(chat, user, id, clientId, time, message, skype);

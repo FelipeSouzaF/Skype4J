@@ -50,22 +50,41 @@ public class ContactImpl implements Contact {
     }
 
     private static JsonObject getObject(SkypeImpl skype, String username) throws ConnectionException {
-        JsonArray array = Endpoints.PROFILE_INFO
+        JsonObject obj = Endpoints.PROFILE_INFO
                 .open(skype)
-                .expect(200, "While getting contact info")
-                .as(JsonArray.class)
-                .post(new JsonObject()
-                        .add("usernames", new JsonArray()
-                                .add(username)
-                        )
-                );
-        return array.get(0).asObject();
+                .expect(200, "While getting profile info")
+                .as(JsonObject.class)
+                .get();
+        String userPhones = "";
+        String displayName = Utils.getString(obj, "firstname") + " " + Utils.getString(obj, "lastname");
+        if (Utils.getString(obj, "phoneHome") != null){
+            userPhones = Utils.getString(obj, "phoneHome");
+        }
+        if (Utils.getString(obj, "phoneMobile") != null){
+            if (userPhones == ""){
+                userPhones = Utils.getString(obj, "phoneMobile");
+            } else {
+                userPhones += ", " + Utils.getString(obj, "phoneMobile");
+            }
+        }
+        if (Utils.getString(obj, "phoneOffice") != null){
+            if (userPhones == ""){
+                userPhones = Utils.getString(obj, "phoneOffice");
+            } else {
+                userPhones += ", " + Utils.getString(obj, "phoneOffice");
+            }
+        }
+        skype.setUserPhones(userPhones);
+        skype.setDisplayName(displayName);
+        return obj;
     }
 
     private SkypeImpl skype;
     private String username;
     private String displayName;
     private String firstName;
+    private String phones ; 
+    private String status;
     private String lastName;
     private String birthday;
     private String gender;
@@ -91,16 +110,21 @@ public class ContactImpl implements Contact {
         this.username = username;
         if (!PHONE_NUMBER.matcher(username).matches()) {
             updateProfile(unaddedData);
-            updateContactInfo();
+//            updateContactInfo();
         } else {
             this.isPhone = true;
         }
     }
 
-    public ContactImpl(SkypeImpl skype, JsonObject contact) throws ConnectionException {
+    public ContactImpl(SkypeImpl skype, JsonObject contact, String contactStatus) throws ConnectionException {
         this.skype = skype;
-        update(contact);
-        updateProfile(getObject(skype, getUsername()));
+        getObject(skype, username);
+        update(contact, contactStatus);
+    }
+    
+    public ContactImpl(SkypeImpl skype) throws ConnectionException {
+        this.skype = skype;
+        getObject(skype, username);
     }
 
     private void updateContactInfo() throws ConnectionException {
@@ -112,7 +136,7 @@ public class ContactImpl implements Contact {
                     .get();
             if (obj.get("contacts").asArray().size() > 0) {
                 JsonObject contact = obj.get("contacts").asArray().get(0).asObject();
-                update(contact);
+//                update(contact, contactStatus);
             } else {
                 this.isAuthorized = false;
                 this.isBlocked = false;
@@ -138,6 +162,14 @@ public class ContactImpl implements Contact {
     @Override
     public String getLastName() {
         return this.lastName;
+    }
+    
+    public String getPhoneNumbers() {
+        return this.phones;
+    }
+    
+    public String getStatus() {
+        return this.status;
     }
 
     @Override
@@ -256,8 +288,8 @@ public class ContactImpl implements Contact {
         return skype.getOrLoadChat("8:" + this.username);
     }
 
-    public void update(JsonObject contact) {
-        this.username = contact.get("id").asString();
+    public void update(JsonObject contact, String contactStatus) throws ConnectionException {
+        this.username = contact.get("person_id").asString();
         this.isAuthorized = contact.get("authorized").asBoolean();
         this.isBlocked = contact.get("blocked").asBoolean();
         this.displayName = Utils.getString(contact, "display_name");
@@ -265,18 +297,38 @@ public class ContactImpl implements Contact {
         this.mood = Utils.getString(contact, "mood");
         this.type = Utils.getString(contact, "type");
         this.authCertificate = Utils.getString(contact, "auth_certificate");
-        this.firstName = contact.get("name") == null ? null : Utils.getString(contact.get("name").asObject(), "first");
+        this.status = contactStatus;
         if (contact.get("locations") != null) {
             JsonObject locations = contact.get("locations").asArray().get(0).asObject();
             this.country = locations.get("country") == null ? null : locations.get("country").asString();
             this.city = locations.get("city") == null ? null : locations.get("city").asString();
         }
+        JsonObject profile = (JsonObject) contact.get("profile");
+        updateProfile(profile);
     }
 
     public void updateProfile(JsonObject profile) {
-        this.firstName = Utils.getString(profile, "firstname");
-        this.lastName = Utils.getString(profile, "lastname");
+        JsonObject nameDetails = (JsonObject) profile.get("name");
+        JsonArray phonesArray = (JsonArray) profile.get("phones");
+        String phonesStr = "";
+        if (phonesArray != null){
+            for (int i = 0; i < phonesArray.size(); i++){
+                JsonObject eachPhone = (JsonObject) phonesArray.get(i);
+                if (i > 0) {
+                    phonesStr += ", ";
+                }
+                phonesStr += eachPhone.get("number").asString();
+            }
+        }
+        if (nameDetails != null){
+            this.firstName = Utils.getString(nameDetails, "first");
+            this.lastName = Utils.getString(nameDetails, "surname");    
+        } else {
+            this.firstName = Utils.getString(profile, "firstname");
+            this.lastName = Utils.getString(profile, "lastname");
+        }
         this.birthday = Utils.getString(profile, "birthday");
+        this.phones = phonesStr;
 
         if (profile.get("gender") != null) {
             if (profile.get("gender").isNumber()) {
@@ -291,7 +343,7 @@ public class ContactImpl implements Contact {
         }
 
         this.language = Utils.getString(profile, "language");
-        this.avatarURL = Utils.getString(profile, "avatarUrl");
+        this.avatarURL = Utils.getString(profile, "avatar_url");
 
         if (this.displayName == null)
             this.displayName = Utils.getString(profile, "displayname");

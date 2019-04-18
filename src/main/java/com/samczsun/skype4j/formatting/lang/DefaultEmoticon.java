@@ -17,10 +17,13 @@
 package com.samczsun.skype4j.formatting.lang;
 
 import com.samczsun.skype4j.formatting.IEmoticon;
+import com.samczsun.skype4j.formatting.lang.en.Emoticon;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public enum DefaultEmoticon implements IEmoticon {
 
@@ -52,5 +55,40 @@ public enum DefaultEmoticon implements IEmoticon {
 
     public String getDescription() {
         return this.desc;
+    }
+    
+    private static Map<String, Emoticon> dictionary;
+    private static int longestEmoji = -1;
+
+    public static Map<String, Emoticon> getDictionary() {
+        if (dictionary == null) { // This is for performance, trust me
+            initDictionary();
+}
+        return dictionary;
+    }
+
+    public static int getLongestEmoji() {
+        if (longestEmoji == -1) {
+            for (String s : getDictionary().keySet()) {
+                if (s.charAt(0) != '(') {
+                    if (s.length() > longestEmoji) {
+                        longestEmoji = s.length();
+                    }
+                }
+            }
+        }
+        return longestEmoji;
+    }
+
+    private static void initDictionary() {
+        if (dictionary == null) {
+            dictionary = new HashMap<>();
+            for (Emoticon emoticon : Emoticon.values()) {
+                emoticon.getShortcuts().forEach(str -> {
+                    dictionary.put(str, emoticon);
+                    dictionary.put(str.replace("<", "&lt;").replace(">", "&gt;"), emoticon);
+                });
+            }
+        }
     }
 }

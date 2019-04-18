@@ -142,7 +142,7 @@ public interface Chat {
      * @return The Skype instance
      */
     Skype getClient();
-
+    
     /**
      * Sets your alerts off. Does not affect anything in this API
      *

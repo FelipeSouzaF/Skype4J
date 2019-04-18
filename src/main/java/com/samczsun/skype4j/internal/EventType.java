@@ -16,13 +16,20 @@
 
 package com.samczsun.skype4j.internal;
 
+import br.com.seti.dao.SkypeContact;
 import com.eclipsesource.json.JsonObject;
+import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.SkypeException;
+import com.samczsun.skype4j.participants.info.Contact;
 import org.jsoup.helper.Validate;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +37,7 @@ public enum EventType {
     NEW_MESSAGE("NewMessage") {
         @Override
         public void handle(SkypeImpl skype, JsonObject eventObj) throws SkypeException, IOException {
+
             JsonObject resource = eventObj.get("resource").asObject();
             String type = Utils.getString(resource, "messagetype");
             try {
@@ -80,8 +88,19 @@ public enum EventType {
     },
     USER_PRESENCE("UserPresence") {
         @Override
-        public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException {
-
+        public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, ConnectionException {
+            String resourceLinkMe = "https://bn2-client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService";
+            String resourceLink = resource.get("resourceLink").asString();
+            if (resourceLinkMe.equalsIgnoreCase(resourceLink)){
+                try {
+                    skype.getLoginUserStatus();
+                } catch (SQLException ex) {
+                    Logger.getLogger(EventType.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                skype.updateContactList();
+                skype.SaveContacts();
+            }
         }
     },
     CONVERSATION_UPDATE("ConversationUpdate") {
@@ -94,6 +113,7 @@ public enum EventType {
         @Override
         public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException {
             // User add and leave here 25898
+            System.out.println("testete");
         }
     };
 

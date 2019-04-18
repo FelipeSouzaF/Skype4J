@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum Moji implements IMoji {
-
+        
     DESPICABLEME("7e241717964a403dbab21be9fa860c81", "01fdf549-b6dc-4319-983c-1dd2d42f35e6", "Despicable Me"),
     DESPICABLEME_1("ca62da9e0ae54dca8b36ae300cb63991", "2aae7c79-39c3-4e57-a280-05179c416e2d", "Despicable Me 2"),
     DESPICABLEME_2("0b9704a393a846ea845821cc8eea157f", "a9b07f96-218b-41f7-9407-627ab69dba8a", "Despicable Me"),
@@ -301,11 +301,11 @@ public enum Moji implements IMoji {
     KILLDIL_5("825473cc486d48b0acf25f52045a21be", "b139d61b-3df8-4440-a1c5-9ef318163181", "Kill Dil "),
     AGENTVINOD("37ef0832a0ac486fa07953c73bf6cee9", "2e4a8407-5931-4930-8ebc-d2e48e0397d3", "Agent Vinod"),
     VICKYDONOR_1("14271874627f4a2d893db568eeff9954", "3c026c7d-aa37-4fe1-8bfb-133460aed512", "Vicky Donor"),
-    MOHABBATEIN("b3cffea2fd5044d08db7458e4c373cdf", "5b000c95-f530-4a7f-b302-842675aaa249", "Mohabbatein ");
+    MOHABBATEIN("b3cffea2fd5044d08db7458e4c373cdf", "5b000c95-f530-4a7f-b302-842675aaa249", "Mohabbatein ");    
 
-    private final String id;
-    private final String etag;
-    private final String desc;
+    private String id;
+    private String etag;
+    private String desc;
 
     Moji(String id, String etag, String desc) {
         this.id = id;

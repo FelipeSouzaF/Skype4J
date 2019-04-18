@@ -16,6 +16,8 @@
 
 package com.samczsun.skype4j.internal;
 
+import br.com.seti.dao.SkypeContact;
+import br.com.seti.dao.SkypeUser;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
@@ -47,6 +49,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,6 +72,10 @@ public abstract class SkypeImpl implements Skype {
     protected final Set<String> resources;
     protected final List<ErrorHandler> errorHandlers;
     private final String username;
+    private String liveUsername;
+    private String status;
+    private String displayName;
+    private String userPhones;
     protected ExecutorService scheduler;
     protected ExecutorService shutdownThread;
     protected EventDispatcher eventDispatcher = new SkypeEventDispatcher(this);
@@ -96,7 +103,8 @@ public abstract class SkypeImpl implements Skype {
     protected final Map<String, BotInfoImpl> allBots = Collections.synchronizedMap(new HashMap<>());
     protected final Set<Contact.ContactRequest> allContactRequests = Collections.synchronizedSet(new HashSet<>());
 
-    public SkypeImpl(String username, Set<String> resources, Logger logger, List<ErrorHandler> errorHandlers) {
+    public SkypeImpl(String username, Set<String> resources, Logger logger, List<ErrorHandler> errorHandlers) throws ConnectionException {
+        this.liveUsername = null;
         this.username = username;
         this.resources = Collections.unmodifiableSet(new HashSet<>(resources));
         this.errorHandlers = Collections.unmodifiableList(new ArrayList<>(errorHandlers));
@@ -125,6 +133,25 @@ public abstract class SkypeImpl implements Skype {
             this.logger.setUseParentHandlers(false);
             this.logger.addHandler(handler);
         }
+          this.status = null;
+    }
+    
+    public void getLoginUserStatus() throws ConnectionException, SQLException {
+        JsonObject object = Endpoints.VISIBILITY
+                .open(this)
+                .as(JsonObject.class)
+                .expect(200, "While loading contacts status")
+                .get();
+        this.status = object.get("status").asString();
+        SkypeUser user = new SkypeUser(username);
+        user.setCredits("1");
+        user.setLoginLive(liveUsername);
+        user.setMonitorStatus("");
+        user.setFullName(this.displayName);
+        user.setPhone(userPhones);
+        user.setSkypeStatus(this.status.toUpperCase());
+        user.setLastKnownStatus(this.status.toUpperCase());
+        SkypeUser.save(user);
     }
 
     @Override
@@ -476,6 +503,7 @@ public abstract class SkypeImpl implements Skype {
                         .expect(200, "Err")
                         .put(new JsonObject().add("endpointFeatures", "Agent"));
                 connection = Endpoints.SUBSCRIPTIONS_URL.open(this).dontConnect().post(buildSubscriptionObject());
+                getLoginUserStatus();
             }
             if (connection.getResponseCode() != 201) {
                 throw ExceptionHandler.generateException("While subscribing", connection);
@@ -569,7 +597,31 @@ public abstract class SkypeImpl implements Skype {
     public String getUsername() {
         return this.username;
     }
+    
+    public String getLiveUsername() {
+        return this.liveUsername;
+    }
 
+    public void setLiveUsername(String liveUsername) {
+        this.liveUsername = liveUsername;
+    }
+    
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+    
+    public String getUserPhones() {
+        return this.userPhones;
+    }
+
+    public void setUserPhones(String userPhones) {
+        this.userPhones = userPhones;
+    }
+    
     public UUID getGuid() {
         return guid;
     }
@@ -621,6 +673,24 @@ public abstract class SkypeImpl implements Skype {
     public SkypeWebSocket getWebSocket() {
         return wss;
     }
+    
+    public void SaveContacts(){
+        Collection<Contact> contacts = this.getAllContacts();
+        for (Contact contact : contacts){
+            SkypeContact contato = new SkypeContact();
+            contato.setUserLogin(this.getUsername());
+            String[] splitUsername = contact.getUsername().split(":", 2);
+            contato.setLogin(splitUsername[1]);
+            contato.setFullName(contact.getDisplayName());
+            contato.setPhone(contact.getPhoneNumbers());
+            contato.setStatus(contact.getStatus().toUpperCase());
+            try {
+                SkypeContact.save(contato);
+            } catch (SQLException ex) {
+                Logger.getLogger(EventType.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
 
     public void setVisibility(Visibility visibility) throws ConnectionException {
         Endpoints.VISIBILITY
@@ -630,6 +700,10 @@ public abstract class SkypeImpl implements Skype {
     }
 
     public String getId() {
-        return "8:" + getUsername();
+        if(getLiveUsername() != null){
+            return "8:" + getLiveUsername();
+        } else {
+            return "8:" + getUsername();
+        }
     }
 }

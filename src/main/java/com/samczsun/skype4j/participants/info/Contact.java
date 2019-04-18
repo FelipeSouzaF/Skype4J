@@ -55,7 +55,10 @@ public interface Contact {
      * @return The last name
      */
     String getLastName();
-
+    
+    String getPhoneNumbers();
+    
+    String getStatus();
     /**
      * Get the avatar as a {@link BufferedImage}. Can return null if not found.
      * Once the image is loaded it is cached

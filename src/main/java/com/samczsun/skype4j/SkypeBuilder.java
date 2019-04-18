@@ -16,6 +16,7 @@
 
 package com.samczsun.skype4j;
 
+import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.handler.ErrorHandler;
 import com.samczsun.skype4j.internal.client.FullClient;
 import com.samczsun.skype4j.internal.client.GuestClient;
@@ -118,7 +119,7 @@ public class SkypeBuilder {
      *
      * @return The Skype instance
      */
-    public Skype build() {
+    public Skype build() throws ConnectionException {
         if (resources.isEmpty()) {
             throw new IllegalArgumentException("No resources selected");
         }

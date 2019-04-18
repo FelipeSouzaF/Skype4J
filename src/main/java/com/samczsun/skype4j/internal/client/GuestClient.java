@@ -45,7 +45,7 @@ public class GuestClient extends SkypeImpl {
 
     private volatile String actualUsername;
 
-    public GuestClient(String username, String chatId, Set<String> resources, Logger logger, List<ErrorHandler> errorHandlers) {
+    public GuestClient(String username, String chatId, Set<String> resources, Logger logger, List<ErrorHandler> errorHandlers) throws ConnectionException {
         super(username, resources, logger, errorHandlers);
         this.chatId = chatId;
         this.requestedUsername = username;

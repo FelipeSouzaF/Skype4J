@@ -20,6 +20,7 @@ import com.eclipsesource.json.JsonObject;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.handler.ErrorSource;
 import com.samczsun.skype4j.internal.client.FullClient;
+import com.samczsun.skype4j.internal.participants.info.ContactImpl;
 import org.java_websocket.SSLSocketChannel2;
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
@@ -39,10 +40,12 @@ import java.nio.channels.SocketChannel;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SkypeWebSocket extends WebSocketClient {
     private final SkypeImpl skype;
@@ -109,9 +112,14 @@ public class SkypeWebSocket extends WebSocketClient {
             int event = body.get("evt").asInt();
             if (event == 6) {
                 try {
+                    ContactImpl contactImpl = new ContactImpl(skype);
+                    skype.getLoginUserStatus();
                     skype.updateContactList();
+                    skype.SaveContacts();
                 } catch (ConnectionException e) {
                     skype.handleError(ErrorSource.UPDATING_CONTACT_LIST, e, false);
+                } catch (SQLException ex) {
+                    Logger.getLogger(SkypeWebSocket.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else if (event == 14) {
                 try {

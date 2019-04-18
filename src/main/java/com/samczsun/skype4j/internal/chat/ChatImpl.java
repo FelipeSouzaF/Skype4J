@@ -261,7 +261,7 @@ public abstract class ChatImpl implements Chat {
     public SkypeImpl getClient() {
         return this.client;
     }
-
+    
     @Override
     public void startTyping(ErrorHandler handler) {
         if (this.typingThread == null) {

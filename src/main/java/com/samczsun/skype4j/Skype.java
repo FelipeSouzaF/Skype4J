@@ -66,6 +66,8 @@ public interface Skype {
      * @return The username
      */
     String getUsername();
+    
+    String getLiveUsername();
 
     /**
      * Get a {@link Chat} based on the identity given. The chat must already be loaded

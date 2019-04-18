@@ -75,7 +75,7 @@ public class Endpoints {
             "https://%sclient-s.gateway.messenger.live.com/v1/threads/%s/properties?name=%s").cloud().regtoken();
     public static final Endpoints ADD_MEMBER_URL = new Endpoints(
             "https://client-s.gateway.messenger.live.com/v1/threads/%s/members/8:%s").regtoken();
-    public static final Endpoints LOGIN_URL = new Endpoints("https://api.skype.com/login/skypetoken");
+    public static final Endpoints LOGIN_URL = new Endpoints("https://edge.skype.com/rps/v1/rps/skypetoken");
     public static final Endpoints PING_URL = new Endpoints("https://web.skype.com/api/v1/session-ping").skypetoken();
     public static final Endpoints TOKEN_AUTH_URL = new Endpoints("https://api.asm.skype.com/v1/skypetokenauth");
     public static final Endpoints LOGOUT_URL = new Endpoints(
@@ -122,14 +122,16 @@ public class Endpoints {
     public static final Endpoints FETCH_IMAGE = new Endpoints(
             "https://api.asm.skype.com/v1/objects/%s/views/%s").defaultHeader("Authorization", AUTHORIZATION);
     public static final Endpoints VISIBILITY = new Endpoints(
-            "https://%sclient-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService")
-            .cloud()
+            "https://client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService")
             .regtoken();
     public static final Endpoints SEARCH_SKYPE_DIRECTORY = new Endpoints(
             "https://api.skype.com/search/users/any?keyWord=%s&contactTypes[]=skype").skypetoken();
     public static final Endpoints GET_ALL_CONTACTS = new Endpoints(
-            "https://contacts.skype.com/contacts/v1/users/%s/contacts?delta&$filter=type%%20eq%%20%%27skype%%27%%20or%%20type%%20eq%%20%%27msn%%27%%20or%%20type%%20eq%%20%%27pstn%%27%%20or%%20type%%20eq%%20%%27agent%%27%%20or%%20type%%20eq%%20%%27lync%%27&reason=%s")
+            "https://contacts.skype.com/contacts/v2/users/SELF?delta=&reason=default")
             .skypetoken();
+    public static final Endpoints GET_ALL_CONTACTS_STATUS = new Endpoints(
+            "https://client-s.gateway.messenger.live.com/v1/users/ME/contacts/ALL/presenceDocs/messagingService?%s")
+            .regtoken();
     public static final Endpoints GET_CONTACT_BY_ID = new Endpoints(
             "https://contacts.skype.com/contacts/v1/users/%s/contacts?$filter=id%%20eq%%20%%27%s%%27&reason=default").skypetoken();
     public static final Endpoints BLOCK_CONTACT = new Endpoints(
@@ -149,10 +151,10 @@ public class Endpoints {
     @Deprecated
     public static final Endpoints CONTACT_INFO = new Endpoints(
             "https://api.skype.com/users/self/contacts/profiles").skypetoken();
-    public static final Endpoints PROFILE_INFO = new Endpoints("https://api.skype.com/users/batch/profiles").skypetoken();
+    public static final Endpoints PROFILE_INFO = new Endpoints("https://api.skype.com/users/self/profile").skypetoken();
     public static final Endpoints RECONNECT_WEBSOCKET = new Endpoints(
             "https://go.trouter.io/v2/h?ccid=%s&dom=web.skype.com");
-    public static final Endpoints ELIGIBILITY_CHECK = new Endpoints("https://web.skype.com/api/v2/eligibility-check").skypetoken();
+    public static final Endpoints ELIGIBILITY_CHECK = new Endpoints("https://web.skype.com/").skypetoken();
 
     public static final Endpoints AGENT_INFO = new Endpoints("https://api.aps.skype.com/v1/agents?agentId=%s").skypetoken();
 
@@ -232,7 +234,7 @@ public class Endpoints {
             this.skype = skype;
             this.args = args;
             header("User-Agent",
-                    "Mozilla/5.0 (Windows NT 10; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36 Skype4J/" + SkypeImpl.VERSION);
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36 Skype4J/" + SkypeImpl.VERSION);
         }
 
         public EndpointConnection<E_TYPE> header(String key, String val) {

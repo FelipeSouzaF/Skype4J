@@ -51,7 +51,7 @@ public interface Participant {
      * @returns The display name, or null if non existent or not found
      */
     String getDisplayName();
-
+    
     /*
      * Gets the {@link Chat} this participant is participating in
      *
