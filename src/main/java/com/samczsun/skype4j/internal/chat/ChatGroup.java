@@ -122,7 +122,7 @@ public class ChatGroup extends ChatImpl implements GroupChat {
             JsonArray usernames = new JsonArray();
             localToLoad.keySet().forEach(usernames::add);
 
-            JsonArray info = Endpoints.PROFILE_INFO
+            JsonArray info = Endpoints.PROFILE_INFO_CHAT_GROUP
                     .open(getClient())
                     .expect(200, "While getting contact info")
                     .as(JsonArray.class)

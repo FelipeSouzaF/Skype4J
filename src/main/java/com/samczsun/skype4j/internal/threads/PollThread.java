@@ -133,6 +133,7 @@ public class PollThread extends Thread {
                         if (message.get("eventMessages") != null) {
                             for (JsonValue elem : message.get("eventMessages").asArray()) {
                                 JsonObject eventObj = elem.asObject();
+
                                 EventType type = EventType.getByName(eventObj.get("resourceType").asString());
                                 if (type != null) {
                                     try {

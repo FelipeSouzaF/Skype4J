@@ -113,7 +113,6 @@ public enum EventType {
         @Override
         public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException {
             // User add and leave here 25898
-            System.out.println("testete");
         }
     };
 

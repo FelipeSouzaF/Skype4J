@@ -615,7 +615,7 @@ public abstract class SkypeImpl implements Skype {
     }
     
     public String getUserPhones() {
-        return this.userPhones;
+        return this.userPhones == null ? "" : this.userPhones;
     }
 
     public void setUserPhones(String userPhones) {

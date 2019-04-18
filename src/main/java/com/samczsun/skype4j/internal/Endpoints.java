@@ -152,6 +152,7 @@ public class Endpoints {
     public static final Endpoints CONTACT_INFO = new Endpoints(
             "https://api.skype.com/users/self/contacts/profiles").skypetoken();
     public static final Endpoints PROFILE_INFO = new Endpoints("https://api.skype.com/users/self/profile").skypetoken();
+    public static final Endpoints PROFILE_INFO_CHAT_GROUP = new Endpoints("https://api.skype.com/users/batch/profiles").skypetoken();
     public static final Endpoints RECONNECT_WEBSOCKET = new Endpoints(
             "https://go.trouter.io/v2/h?ccid=%s&dom=web.skype.com");
     public static final Endpoints ELIGIBILITY_CHECK = new Endpoints("https://web.skype.com/").skypetoken();
