@@ -113,7 +113,7 @@ public class SkypeWebSocket extends WebSocketClient {
             if (event == 6) {
                 try {
                     ContactImpl contactImpl = new ContactImpl(skype);
-                    skype.getLoginUserStatus();
+                    skype.getLoginUserStatus(2);
                     skype.updateContactList();
                     skype.SaveContacts();
                 } catch (ConnectionException e) {

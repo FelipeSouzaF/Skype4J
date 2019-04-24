@@ -34,8 +34,6 @@ import com.samczsun.skype4j.internal.utils.UncheckedRunnable;
 import com.samczsun.skype4j.participants.info.Contact;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-
-import javax.xml.bind.DatatypeConverter;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -50,6 +48,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.security.auth.login.AccountNotFoundException;
+import javax.xml.bind.DatatypeConverter;
 import org.jsoup.Connection;
 import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
@@ -298,10 +297,6 @@ public class FullClient extends SkypeImpl {
         for (JsonValue valueStatus : object.get("contacts").asArray()) {
             JsonObject objStatus = valueStatus.asObject();
             if (objStatus.get("suggested") == null || !objStatus.get("suggested").asBoolean()) {
-//                String ignoreContact = Utils.getString(objStatus, "person_id");
-//                if ("28:0d5d6cff-595d-49d7-9cf8-973173f5233b".equals(ignoreContact)){
-//                    continue;
-//                }
                 if (i == 0) {
                     contactsStatus = "cMri=" + objStatus.get("person_id").asString();
                 } else {
@@ -368,10 +363,6 @@ public class FullClient extends SkypeImpl {
         for (JsonValue valueStatus : object.get("contacts").asArray()) {
             JsonObject objStatus = valueStatus.asObject();
             if (objStatus.get("suggested") == null || !objStatus.get("suggested").asBoolean()) {
-//                String ignoreContact = Utils.getString(objStatus, "person_id");
-//                if ("28:0d5d6cff-595d-49d7-9cf8-973173f5233b".equals(ignoreContact)){
-//                    continue;
-//                }
                 if (i == 0) {
                     contactsStatus = "cMri=" + objStatus.get("person_id").asString();
                 } else {

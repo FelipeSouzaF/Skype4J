@@ -110,7 +110,6 @@ public class ContactImpl implements Contact {
         this.username = username;
         if (!PHONE_NUMBER.matcher(username).matches()) {
             updateProfile(unaddedData);
-//            updateContactInfo();
         } else {
             this.isPhone = true;
         }
@@ -169,7 +168,7 @@ public class ContactImpl implements Contact {
     }
     
     public String getStatus() {
-        return this.status;
+        return this.status == null ? "OFFLINE" : this.status;
     }
 
     @Override

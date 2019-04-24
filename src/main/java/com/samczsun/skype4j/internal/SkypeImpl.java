@@ -40,7 +40,6 @@ import com.samczsun.skype4j.internal.utils.Encoder;
 import com.samczsun.skype4j.participants.info.BotInfo;
 import com.samczsun.skype4j.participants.info.Contact;
 import org.jsoup.helper.Validate;
-
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -136,21 +135,32 @@ public abstract class SkypeImpl implements Skype {
           this.status = null;
     }
     
-    public void getLoginUserStatus() throws ConnectionException, SQLException {
+    public void getLoginUserStatus(int epidSize) throws ConnectionException, SQLException {
         JsonObject object = Endpoints.VISIBILITY
                 .open(this)
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts status")
                 .get();
+        JsonArray getFinancialStats = Endpoints.FINANCIALS
+                .open(this, this.liveUsername)
+                .header("Accept", "application/json; ver=3.0")
+                .as(JsonArray.class)
+                .expect(200, "While loading contacts financials")
+                .get();
+        JsonObject financialStats = (JsonObject) getFinancialStats.get(0);
         this.status = object.get("status").asString();
         SkypeUser user = new SkypeUser(username);
-        user.setCredits("1");
+        user.setCredits(Utils.getString(financialStats, "balanceFormatted"));
         user.setLoginLive(liveUsername);
         user.setMonitorStatus("");
         user.setFullName(this.displayName);
-        user.setPhone(userPhones);
-        user.setSkypeStatus(this.status.toUpperCase());
+        user.setPhone(this.getUserPhones());
         user.setLastKnownStatus(this.status.toUpperCase());
+        if (epidSize < 2){
+            user.setSkypeStatus("OFFLINE");
+        } else {
+            user.setSkypeStatus(this.status.toUpperCase());
+        }
         SkypeUser.save(user);
     }
 
@@ -503,7 +513,7 @@ public abstract class SkypeImpl implements Skype {
                         .expect(200, "Err")
                         .put(new JsonObject().add("endpointFeatures", "Agent"));
                 connection = Endpoints.SUBSCRIPTIONS_URL.open(this).dontConnect().post(buildSubscriptionObject());
-                getLoginUserStatus();
+                getLoginUserStatus(2);
             }
             if (connection.getResponseCode() != 201) {
                 throw ExceptionHandler.generateException("While subscribing", connection);

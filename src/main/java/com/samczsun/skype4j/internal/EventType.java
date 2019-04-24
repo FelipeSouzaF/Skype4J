@@ -16,16 +16,14 @@
 
 package com.samczsun.skype4j.internal;
 
-import br.com.seti.dao.SkypeContact;
+import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
+import com.samczsun.skype4j.Visibility;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.SkypeException;
-import com.samczsun.skype4j.participants.info.Contact;
 import org.jsoup.helper.Validate;
-
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -89,11 +87,18 @@ public enum EventType {
     USER_PRESENCE("UserPresence") {
         @Override
         public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, ConnectionException {
+            JsonObject resourceEndpoint = resource.get("resource").asObject();
+            JsonArray findEndpoint = resourceEndpoint.get("endpointPresenceDocLinks").asArray();
             String resourceLinkMe = "https://bn2-client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService";
             String resourceLink = resource.get("resourceLink").asString();
             if (resourceLinkMe.equalsIgnoreCase(resourceLink)){
                 try {
-                    skype.getLoginUserStatus();
+                    if (findEndpoint.size() < 2){
+                        skype.getLoginUserStatus(1);
+                        skype.setVisibility(Visibility.INVISIBLE);
+                    } else {
+                        skype.getLoginUserStatus(2);
+                    }
                 } catch (SQLException ex) {
                     Logger.getLogger(EventType.class.getName()).log(Level.SEVERE, null, ex);
                 }

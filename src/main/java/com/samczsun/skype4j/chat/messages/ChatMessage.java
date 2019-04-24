@@ -76,4 +76,6 @@ public interface ChatMessage {
      * @return The ID
      */
     String getId();
+            
+    void setSentTime(Long time);
 }

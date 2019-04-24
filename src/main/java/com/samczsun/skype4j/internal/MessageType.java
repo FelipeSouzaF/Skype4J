@@ -117,6 +117,7 @@ public enum MessageType {
                 final String clientId = resource.get("skypeeditedid").asString();
                 ChatMessage m = user.getMessageById(clientId);
                 if (m != null) {
+                    m.setSentTime(Long.valueOf(resource.get("id").asString()));
                     MessageEditedEvent evnt = new MessageEditedEvent(m, content);
                     skype.getEventDispatcher().callEvent(evnt);
                     ((ChatMessageImpl) m).edit0(Message.fromHtml(content));

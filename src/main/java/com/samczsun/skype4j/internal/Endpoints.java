@@ -124,6 +124,9 @@ public class Endpoints {
     public static final Endpoints VISIBILITY = new Endpoints(
             "https://client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService")
             .regtoken();
+    public static final Endpoints FINANCIALS = new Endpoints(
+            "https://consumer.entitlement.skype.com/users/%s/services?language=en")
+            .skypetoken();
     public static final Endpoints SEARCH_SKYPE_DIRECTORY = new Endpoints(
             "https://api.skype.com/search/users/any?keyWord=%s&contactTypes[]=skype").skypetoken();
     public static final Endpoints GET_ALL_CONTACTS = new Endpoints(
