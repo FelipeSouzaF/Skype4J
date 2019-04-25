@@ -24,19 +24,13 @@ import com.samczsun.skype4j.internal.utils.Encoder;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -122,7 +116,7 @@ public class Endpoints {
     public static final Endpoints FETCH_IMAGE = new Endpoints(
             "https://api.asm.skype.com/v1/objects/%s/views/%s").defaultHeader("Authorization", AUTHORIZATION);
     public static final Endpoints VISIBILITY = new Endpoints(
-            "https://client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService")
+            "https://%sclient-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService").cloud()
             .regtoken();
     public static final Endpoints FINANCIALS = new Endpoints(
             "https://consumer.entitlement.skype.com/users/%s/services?language=en")
@@ -133,7 +127,7 @@ public class Endpoints {
             "https://contacts.skype.com/contacts/v2/users/SELF?delta=&reason=default")
             .skypetoken();
     public static final Endpoints GET_ALL_CONTACTS_STATUS = new Endpoints(
-            "https://client-s.gateway.messenger.live.com/v1/users/ME/contacts/ALL/presenceDocs/messagingService?%s")
+            "https://%sclient-s.gateway.messenger.live.com/v1/users/ME/contacts/ALL/presenceDocs/messagingService?%s").cloud()
             .regtoken();
     public static final Endpoints GET_CONTACT_BY_ID = new Endpoints(
             "https://contacts.skype.com/contacts/v1/users/%s/contacts?$filter=id%%20eq%%20%%27%s%%27&reason=default").skypetoken();

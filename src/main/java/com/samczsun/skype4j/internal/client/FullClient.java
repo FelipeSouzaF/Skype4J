@@ -305,16 +305,28 @@ public class FullClient extends SkypeImpl {
                 i++;
             }
         }
-        JsonObject objectStatus = Endpoints.GET_ALL_CONTACTS_STATUS
+        JsonObject objectStatus = null;
+        try {
+          objectStatus = Endpoints.GET_ALL_CONTACTS_STATUS
                 .open(this, contactsStatus)
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts status")
                 .get();
+        } catch (Exception e) {
+          
+        }
         i=0;
         for (JsonValue value : object.get("contacts").asArray()) {
-            JsonObject objStatus = (JsonObject) objectStatus.get("Responses").asArray().get(i);
-            objStatus = (JsonObject) objStatus.get("Payload");
-            String status = objStatus.get("status").asString();
+            String status = null;
+            
+            if (objectStatus != null) {
+                try {
+                    JsonObject objStatus = (JsonObject) objectStatus.get("Responses").asArray().get(i);
+                    objStatus = (JsonObject) objStatus.get("Payload");
+                    status = Utils.getString(objStatus, "status");
+                } catch (Exception e) { }
+            }
+            
             JsonObject obj = value.asObject();
             if (obj.get("suggested") == null || !obj.get("suggested").asBoolean()) {
                 if (!allContacts.containsKey(obj.get("person_id").asString())) {
@@ -371,17 +383,28 @@ public class FullClient extends SkypeImpl {
                 i++;
             }
         }
-        JsonObject objectStatus = Endpoints.GET_ALL_CONTACTS_STATUS
+        JsonObject objectStatus = null;
+        try {
+          objectStatus = Endpoints.GET_ALL_CONTACTS_STATUS
                 .open(this, contactsStatus)
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts status")
                 .get();
+        } catch (Exception e) {
+          
+        }
         i=0;
-        
         for (JsonValue value : object.get("contacts").asArray()) {
-            JsonObject objStatus = (JsonObject) objectStatus.get("Responses").asArray().get(i);
-            objStatus = (JsonObject) objStatus.get("Payload");
-            String status = Utils.getString(objStatus, "status");
+            String status = null;
+            
+            if (objectStatus != null) {
+                try {
+                    JsonObject objStatus = (JsonObject) objectStatus.get("Responses").asArray().get(i);
+                    objStatus = (JsonObject) objStatus.get("Payload");
+                    status = Utils.getString(objStatus, "status");
+                } catch (Exception e) { }
+            }
+            
             if (value.asObject().get("suggested") == null || !value.asObject().get("suggested").asBoolean()) {
                 String id = value.asObject().get("person_id").asString();
                 ContactImpl impl = (ContactImpl) allContacts.get(id);

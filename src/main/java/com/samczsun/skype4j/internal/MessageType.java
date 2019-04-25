@@ -84,6 +84,7 @@ public enum MessageType {
                 final String clientId = resource.get("skypeeditedid").asString();
                 ChatMessage m = user.getMessageById(clientId);
                 if (m != null) {
+                    m.setSentTime(Long.valueOf(resource.get("id").asString()));
                     MessageDeletedEvent event = new MessageDeletedEvent(m);
                     skype.getEventDispatcher().callEvent(event);
                     ((ChatMessageImpl) m).edit0(null);

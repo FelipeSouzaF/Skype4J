@@ -33,7 +33,6 @@ import com.samczsun.skype4j.internal.participants.UserImpl;
 import com.samczsun.skype4j.internal.threads.TypingThread;
 import com.samczsun.skype4j.participants.Participant;
 import com.samczsun.skype4j.participants.info.Contact;
-import com.samczsun.skype4j.participants.User;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -45,7 +44,6 @@ import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 

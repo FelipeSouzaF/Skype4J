@@ -38,9 +38,14 @@ public enum EventType {
 
             JsonObject resource = eventObj.get("resource").asObject();
             String type = Utils.getString(resource, "messagetype");
+            String content = Utils.getString(resource, "content");
             try {
-                Validate.notNull(type, "Null type");
-                MessageType.getByName(type).handle(skype, resource);
+                if (content == null) {
+                    MessageType.TEXT_INTERNAL.handle(skype, resource);
+                } else {
+                    Validate.notNull(type, "Null type");
+                    MessageType.getByName(type).handle(skype, resource);    
+                }
             } catch (Throwable t) {
                 t.addSuppressed(new SkypeException(resource.toString()));
                 throw t;
@@ -89,9 +94,8 @@ public enum EventType {
         public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, ConnectionException {
             JsonObject resourceEndpoint = resource.get("resource").asObject();
             JsonArray findEndpoint = resourceEndpoint.get("endpointPresenceDocLinks").asArray();
-            String resourceLinkMe = "https://bn2-client-s.gateway.messenger.live.com/v1/users/ME/presenceDocs/messagingService";
-            String resourceLink = resource.get("resourceLink").asString();
-            if (resourceLinkMe.equalsIgnoreCase(resourceLink)){
+            int resourceLink = resource.get("resourceLink").asString().indexOf("/v1/users/ME/presenceDocs/messagingService");
+            if (resourceLink != -1){
                 try {
                     if (findEndpoint.size() < 2){
                         skype.getLoginUserStatus(1);

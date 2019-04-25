@@ -16,23 +16,12 @@
 
 package com.samczsun.skype4j.internal.participants;
 
-import com.eclipsesource.json.JsonObject;
-import com.samczsun.skype4j.chat.Chat;
-import com.samczsun.skype4j.chat.GroupChat;
-import com.samczsun.skype4j.chat.messages.ChatMessage;
 import com.samczsun.skype4j.exceptions.ConnectionException;
-import com.samczsun.skype4j.exceptions.NoPermissionException;
-import com.samczsun.skype4j.internal.Endpoints;
 import com.samczsun.skype4j.internal.SkypeImpl;
 import com.samczsun.skype4j.internal.chat.ChatImpl;
 import com.samczsun.skype4j.participants.info.Contact;
 import com.samczsun.skype4j.participants.User;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class UserImpl extends ParticipantImpl implements User {
     private Contact contactRep;
