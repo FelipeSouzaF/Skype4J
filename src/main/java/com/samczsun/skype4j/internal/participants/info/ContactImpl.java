@@ -56,7 +56,12 @@ public class ContactImpl implements Contact {
                 .as(JsonObject.class)
                 .get();
         String userPhones = "";
-        String displayName = Utils.getString(obj, "firstname") + " " + Utils.getString(obj, "lastname");
+        String displayName = "";
+        if (Utils.getString(obj, "lastname") != null){
+            displayName = Utils.getString(obj, "firstname") + " " + Utils.getString(obj, "lastname");
+        } else {
+            displayName = Utils.getString(obj, "firstname");
+        }
         if (Utils.getString(obj, "phoneHome") != null){
             userPhones = Utils.getString(obj, "phoneHome");
         }
@@ -169,6 +174,10 @@ public class ContactImpl implements Contact {
     
     public String getStatus() {
         return this.status == null ? "OFFLINE" : this.status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override

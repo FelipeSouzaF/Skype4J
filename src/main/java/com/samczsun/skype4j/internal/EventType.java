@@ -107,7 +107,10 @@ public enum EventType {
                     Logger.getLogger(EventType.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
-                skype.updateContactList();
+                String loginLive = Utils.getString(resourceEndpoint, "selfLink");
+                String loginLiveStatus = Utils.getString(resourceEndpoint, "status");
+                String loginLiveSplit[] = loginLive.split("/");
+                skype.getContact(loginLiveSplit[5]).setStatus(loginLiveStatus);
                 skype.SaveContacts();
             }
         }

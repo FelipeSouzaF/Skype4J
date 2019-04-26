@@ -57,6 +57,7 @@ import java.util.logging.*;
 import java.util.logging.Formatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.logging.Logger;
 
 public abstract class SkypeImpl implements Skype {
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -130,7 +131,7 @@ public abstract class SkypeImpl implements Skype {
                 }
             });
             this.logger.setUseParentHandlers(false);
-            this.logger.addHandler(handler);
+//            this.logger.addHandler(handler);
         }
           this.status = null;
     }
@@ -148,18 +149,18 @@ public abstract class SkypeImpl implements Skype {
                 .expect(200, "While loading contacts financials")
                 .get();
         JsonObject financialStats = (JsonObject) getFinancialStats.get(0);
-        this.status = object.get("status").asString();
+        this.setStatus(object.get("status").asString());
         SkypeUser user = new SkypeUser(username);
         user.setCredits(Utils.getString(financialStats, "balanceFormatted"));
         user.setLoginLive(liveUsername);
         user.setMonitorStatus("");
         user.setFullName(this.displayName);
         user.setPhone(this.getUserPhones());
-        user.setLastKnownStatus(this.status.toUpperCase());
+        user.setLastKnownStatus(this.getStatus().toUpperCase());
         if (epidSize < 2){
             user.setSkypeStatus("OFFLINE");
         } else {
-            user.setSkypeStatus(this.status.toUpperCase());
+            user.setSkypeStatus(this.getStatus().toUpperCase());
         }
         SkypeUser.save(user);
     }
@@ -685,6 +686,7 @@ public abstract class SkypeImpl implements Skype {
     }
     
     public void SaveContacts(){
+        logger.info("Salvando dados do usuário...");
         Collection<Contact> contacts = this.getAllContacts();
         for (Contact contact : contacts){
             SkypeContact contato = new SkypeContact();
@@ -715,5 +717,13 @@ public abstract class SkypeImpl implements Skype {
         } else {
             return "8:" + getUsername();
         }
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
