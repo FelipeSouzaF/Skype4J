@@ -16,8 +16,6 @@
 
 package com.samczsun.skype4j.internal;
 
-import br.com.seti.dao.SkypeContact;
-import br.com.seti.dao.SkypeUser;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
@@ -48,7 +46,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -136,35 +133,6 @@ public abstract class SkypeImpl implements Skype {
           this.status = null;
     }
     
-    public void getLoginUserStatus(int epidSize) throws ConnectionException, SQLException {
-        JsonObject object = Endpoints.VISIBILITY
-                .open(this)
-                .as(JsonObject.class)
-                .expect(200, "While loading contacts status")
-                .get();
-        JsonArray getFinancialStats = Endpoints.FINANCIALS
-                .open(this, this.liveUsername)
-                .header("Accept", "application/json; ver=3.0")
-                .as(JsonArray.class)
-                .expect(200, "While loading contacts financials")
-                .get();
-        JsonObject financialStats = (JsonObject) getFinancialStats.get(0);
-        this.setStatus(object.get("status").asString());
-        SkypeUser user = new SkypeUser(username);
-        user.setCredits(Utils.getString(financialStats, "balanceFormatted"));
-        user.setLoginLive(liveUsername);
-        user.setMonitorStatus("");
-        user.setFullName(this.displayName);
-        user.setPhone(this.getUserPhones());
-        user.setLastKnownStatus(this.getStatus().toUpperCase());
-        if (epidSize < 2){
-            user.setSkypeStatus("OFFLINE");
-        } else {
-            user.setSkypeStatus(this.getStatus().toUpperCase());
-        }
-        SkypeUser.save(user);
-    }
-
     @Override
     public void login() throws ConnectionException, InvalidCredentialsException {
         Endpoints.ELIGIBILITY_CHECK.open(this)
@@ -514,7 +482,6 @@ public abstract class SkypeImpl implements Skype {
                         .expect(200, "Err")
                         .put(new JsonObject().add("endpointFeatures", "Agent"));
                 connection = Endpoints.SUBSCRIPTIONS_URL.open(this).dontConnect().post(buildSubscriptionObject());
-                getLoginUserStatus(2);
             }
             if (connection.getResponseCode() != 201) {
                 throw ExceptionHandler.generateException("While subscribing", connection);
@@ -685,25 +652,6 @@ public abstract class SkypeImpl implements Skype {
         return wss;
     }
     
-    public void SaveContacts(){
-        logger.info("Salvando dados do usuário...");
-        Collection<Contact> contacts = this.getAllContacts();
-        for (Contact contact : contacts){
-            SkypeContact contato = new SkypeContact();
-            contato.setUserLogin(this.getUsername());
-            String[] splitUsername = contact.getUsername().split(":", 2);
-            contato.setLogin(splitUsername[1]);
-            contato.setFullName(contact.getDisplayName());
-            contato.setPhone(contact.getPhoneNumbers());
-            contato.setStatus(contact.getStatus().toUpperCase());
-            try {
-                SkypeContact.save(contato);
-            } catch (SQLException ex) {
-                Logger.getLogger(EventType.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
     public void setVisibility(Visibility visibility) throws ConnectionException {
         Endpoints.VISIBILITY
                 .open(this)
@@ -725,5 +673,16 @@ public abstract class SkypeImpl implements Skype {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public int connectedEndpointsSize = 0;
+    public int compareEndpoints(JsonArray allEndpoints) {
+        return allEndpoints.size() - this.connectedEndpointsSize;
+    }
+    public void setEndpoints(JsonArray allEndpoints) {
+        this.connectedEndpointsSize = allEndpoints.size();
+    }
+    public String getEndpointId() {
+        return this.endpointId;
     }
 }

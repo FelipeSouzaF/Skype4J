@@ -296,6 +296,10 @@ public class FullClient extends SkypeImpl {
                 .get();
         for (JsonValue valueStatus : object.get("contacts").asArray()) {
             JsonObject objStatus = valueStatus.asObject();
+            String idSkip = objStatus.get("person_id").asString();
+            if (idSkip.contains("28:concierge") || idSkip.contains("8:echo123") || idSkip.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
+                continue;
+            
             if (objStatus.get("suggested") == null || !objStatus.get("suggested").asBoolean()) {
                 if (i == 0) {
                     contactsStatus = "cMri=" + objStatus.get("person_id").asString();
@@ -329,6 +333,9 @@ public class FullClient extends SkypeImpl {
             
             JsonObject obj = value.asObject();
             if (obj.get("suggested") == null || !obj.get("suggested").asBoolean()) {
+                String id = value.asObject().get("person_id").asString();
+                if (id.contains("28:concierge") || id.contains("8:echo123") || id.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
+                    continue;
                 if (!allContacts.containsKey(obj.get("person_id").asString())) {
                     this.allContacts.put(obj.get("person_id").asString(), new ContactImpl(this, obj, status));
                 }
@@ -374,6 +381,10 @@ public class FullClient extends SkypeImpl {
                 .get();
         for (JsonValue valueStatus : object.get("contacts").asArray()) {
             JsonObject objStatus = valueStatus.asObject();
+            String idSkip = objStatus.get("person_id").asString();
+            if (idSkip.contains("28:concierge") || idSkip.contains("8:echo123") || idSkip.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
+                continue;
+            
             if (objStatus.get("suggested") == null || !objStatus.get("suggested").asBoolean()) {
                 if (i == 0) {
                     contactsStatus = "cMri=" + objStatus.get("person_id").asString();
@@ -407,6 +418,8 @@ public class FullClient extends SkypeImpl {
             
             if (value.asObject().get("suggested") == null || !value.asObject().get("suggested").asBoolean()) {
                 String id = value.asObject().get("person_id").asString();
+                if (id.contains("28:concierge") || id.contains("8:echo123") || id.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
+                    continue;
                 ContactImpl impl = (ContactImpl) allContacts.get(id);
                 if (impl == null) impl = (ContactImpl) loadContact(id);
                 impl.update(value.asObject(), status);

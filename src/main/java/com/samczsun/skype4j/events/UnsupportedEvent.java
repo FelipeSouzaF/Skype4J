@@ -29,7 +29,7 @@ public class UnsupportedEvent extends Event {
         this.name = name;
         this.content = content;
     }
-
+    
     /**
      * Get the name of this event assigned by Skype
      *

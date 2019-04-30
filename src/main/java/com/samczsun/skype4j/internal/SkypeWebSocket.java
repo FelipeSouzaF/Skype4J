@@ -17,10 +17,10 @@
 package com.samczsun.skype4j.internal;
 
 import com.eclipsesource.json.JsonObject;
+import com.samczsun.skype4j.events.SaveContactsEvent;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.handler.ErrorSource;
 import com.samczsun.skype4j.internal.client.FullClient;
-import com.samczsun.skype4j.internal.participants.info.ContactImpl;
 import org.java_websocket.SSLSocketChannel2;
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
@@ -112,14 +112,11 @@ public class SkypeWebSocket extends WebSocketClient {
             int event = body.get("evt").asInt();
             if (event == 6) {
                 try {
-                    ContactImpl contactImpl = new ContactImpl(skype);
-                    skype.getLoginUserStatus(2);
                     skype.updateContactList();
-                    skype.SaveContacts();
+                    SaveContactsEvent eventContacts = new SaveContactsEvent();
+                    skype.getEventDispatcher().callEvent(eventContacts);
                 } catch (ConnectionException e) {
                     skype.handleError(ErrorSource.UPDATING_CONTACT_LIST, e, false);
-                } catch (SQLException ex) {
-                    Logger.getLogger(SkypeWebSocket.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else if (event == 14) {
                 try {

@@ -16,18 +16,14 @@
 
 package com.samczsun.skype4j.internal;
 
-import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
-import com.samczsun.skype4j.Visibility;
+import com.samczsun.skype4j.events.StatusEvent;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.SkypeException;
 import org.jsoup.helper.Validate;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -92,27 +88,8 @@ public enum EventType {
     USER_PRESENCE("UserPresence") {
         @Override
         public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, ConnectionException {
-            JsonObject resourceEndpoint = resource.get("resource").asObject();
-            JsonArray findEndpoint = resourceEndpoint.get("endpointPresenceDocLinks").asArray();
-            int resourceLink = resource.get("resourceLink").asString().indexOf("/v1/users/ME/presenceDocs/messagingService");
-            if (resourceLink != -1){
-                try {
-                    if (findEndpoint.size() < 2){
-                        skype.getLoginUserStatus(1);
-                        skype.setVisibility(Visibility.INVISIBLE);
-                    } else {
-                        skype.getLoginUserStatus(2);
-                    }
-                } catch (SQLException ex) {
-                    Logger.getLogger(EventType.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                String loginLive = Utils.getString(resourceEndpoint, "selfLink");
-                String loginLiveStatus = Utils.getString(resourceEndpoint, "status");
-                String loginLiveSplit[] = loginLive.split("/");
-                skype.getContact(loginLiveSplit[5]).setStatus(loginLiveStatus);
-                skype.SaveContacts();
-            }
+            StatusEvent event = new StatusEvent(skype, resource);
+            skype.getEventDispatcher().callEvent(event);
         }
     },
     CONVERSATION_UPDATE("ConversationUpdate") {
