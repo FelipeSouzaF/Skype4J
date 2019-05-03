@@ -178,7 +178,11 @@ public class SkypeWebSocket extends WebSocketClient {
             pingThread.interrupt();
         }
         singleThreaded.shutdown();
-        while (!singleThreaded.isTerminated()) ;
+        while (!singleThreaded.isTerminated()) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) { return; }
+        }
         if (skype.getWebSocket() == this) {
             try {
                 skype.registerWebSocket();

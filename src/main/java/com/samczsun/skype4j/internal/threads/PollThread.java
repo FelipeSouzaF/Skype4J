@@ -161,11 +161,19 @@ public class PollThread extends Thread {
 
     public void shutdown() {
         this.interrupt();
-        while (this.getState() != State.TERMINATED) ;
+        while (this.getState() != State.TERMINATED) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) { return; }
+        }
         if (this.connection != null) {
             this.connection.disconnect();
         }
         this.inputFetcher.shutdownNow();
-        while (!this.inputFetcher.isTerminated()) ;
+        while (!this.inputFetcher.isTerminated()) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) { return; }
+        }
     }
 }

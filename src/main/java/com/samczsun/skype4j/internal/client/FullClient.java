@@ -21,9 +21,11 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.samczsun.skype4j.chat.GroupChat;
 import com.samczsun.skype4j.events.contact.ContactRequestEvent;
+import com.samczsun.skype4j.exceptions.AccountNotFoundException;
 import com.samczsun.skype4j.exceptions.ChatNotFoundException;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.InvalidCredentialsException;
+import com.samczsun.skype4j.exceptions.WrongPasswordException;
 import com.samczsun.skype4j.exceptions.handler.ErrorHandler;
 import com.samczsun.skype4j.exceptions.handler.ErrorSource;
 import com.samczsun.skype4j.internal.*;
@@ -47,7 +49,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.security.auth.login.AccountNotFoundException;
 import javax.xml.bind.DatatypeConverter;
 import org.jsoup.Connection;
 import org.jsoup.Connection.Response;
@@ -65,8 +66,8 @@ public class FullClient extends SkypeImpl {
     }
 
     @Override
-    public void login() throws InvalidCredentialsException, ConnectionException {
-            logger.finer("Refreshing tokens");
+    public void login() throws InvalidCredentialsException, ConnectionException, WrongPasswordException, AccountNotFoundException {
+        logger.finer("Refreshing tokens");
     
         Response authorize = null;
         try {
@@ -128,49 +129,41 @@ public class FullClient extends SkypeImpl {
             Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (post.statusCode() != 302) {
-          int index = post.body().indexOf("sErrTxt:'");
-          int end;
-          end = post.body().indexOf('\'', index + "sErrTxt:'".length());
-          while (post.body().charAt(end - 1) == '\\') {
-            end = post.body().indexOf('\'', end + 1);
-          }
-          if (index == -1 || end == -1) {
-            IOException e = new IOException("Error while connecting to Live: not redirected, no reason given.");
-            logger.log(Level.SEVERE, "", e);
-              try {
-                  throw e;
-              } catch (IOException ex) {
-                  Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-              }
-          }
+            int index = post.body().indexOf("sErrTxt:'");
+            int end;
+            end = post.body().indexOf('\'', index + "sErrTxt:'".length());
+            while (post.body().charAt(end - 1) == '\\') {
+              end = post.body().indexOf('\'', end + 1);
+            }
+            if (index == -1 || end == -1) {
+              IOException e = new IOException("Error while connecting to Live: not redirected, no reason given.");
+              logger.log(Level.SEVERE, "", e);
+                try {
+                    throw e;
+                } catch (IOException ex) {
+                    Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
 
-          String errMessage = post.body().substring(index + "sErrTxt:'".length(), end);
-          if ((errMessage.contains("account") || errMessage.contains("password")) && errMessage.contains("incorrect")) {
-            IOException e = new IOException("Error while connecting to Live: " + errMessage);
-            logger.log(Level.SEVERE, "", e);
-              try {
-                  throw e;
-              } catch (IOException ex) {
-                  Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-              }
-          } else if (errMessage.toLowerCase().contains("microsoft account doesn\\'t exist")) {
-            AccountNotFoundException e = new AccountNotFoundException("Error while connecting to Live: " + errMessage);
-            logger.log(Level.SEVERE, "", e);
-              try {
-                  throw e;
-              } catch (AccountNotFoundException ex) {
-                  Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-              }
-          } else {
-            IOException e = new IOException("Error while connecting to Live: " + errMessage);
-            logger.log(Level.SEVERE, "", e);
-              try {
-                  throw e;
-              } catch (IOException ex) {
-                  Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-              }
+            String errMessage = post.body().substring(index + "sErrTxt:'".length(), end);
+            if ((errMessage.contains("account") || errMessage.contains("password")) && errMessage.contains("incorrect")) {
+              WrongPasswordException e = new WrongPasswordException("Error while connecting to Live: " + errMessage);
+              logger.severe(e.toString());
+              throw e;
+            } else if (errMessage.toLowerCase().contains("microsoft account doesn\\'t exist")) {
+              AccountNotFoundException e = new AccountNotFoundException("Error while connecting to Live: " + errMessage);
+              logger.severe(e.toString());
+              throw e;
+            } else {
+              IOException e = new IOException("Error while connecting to Live: " + errMessage);
+              logger.severe(e.toString());
+                try {
+                    throw e;
+                } catch (IOException ex) {
+                    Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
           }
-        }
 
         String url = post.header("Location");
 
@@ -237,6 +230,8 @@ public class FullClient extends SkypeImpl {
         data.put("passwordHash", hash());
         data.put("access_token", accessToken);
         data.put("site_name", "lw");
+
+        logger.finer("Sending post request to: " + Endpoints.LOGIN_URL.url());
         JsonObject loginData = Endpoints.LOGIN_URL.open(this)
                 .as(JsonObject.class)
                 .expect(200, "While logging in")
@@ -276,6 +271,7 @@ public class FullClient extends SkypeImpl {
 
     @Override
     public void logout() throws ConnectionException {
+        logger.finer("Sending get request to: " + Endpoints.LOGOUT_URL.url());
         Endpoints.LOGOUT_URL
                 .open(this)
                 .noRedirects()
@@ -289,17 +285,22 @@ public class FullClient extends SkypeImpl {
     public void loadAllContacts() throws ConnectionException {
         String contactsStatus = "";
         int i = 0;
+        
+        logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS.url());
         JsonObject object = Endpoints.GET_ALL_CONTACTS
                 .open(this)
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts")
                 .get();
+        logger.finer("Response (" +Endpoints.GET_ALL_CONTACTS.url()+ "): " + object);
         for (JsonValue valueStatus : object.get("contacts").asArray()) {
+            if (i > 9)
+                break;
             JsonObject objStatus = valueStatus.asObject();
             String idSkip = objStatus.get("person_id").asString();
             if (idSkip.contains("28:concierge") || idSkip.contains("8:echo123") || idSkip.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
                 continue;
-            
+
             if (objStatus.get("suggested") == null || !objStatus.get("suggested").asBoolean()) {
                 if (i == 0) {
                     contactsStatus = "cMri=" + objStatus.get("person_id").asString();
@@ -311,14 +312,17 @@ public class FullClient extends SkypeImpl {
         }
         JsonObject objectStatus = null;
         try {
+          logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS_STATUS.url());
           objectStatus = Endpoints.GET_ALL_CONTACTS_STATUS
                 .open(this, contactsStatus)
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts status")
                 .get();
+          logger.finer("Response (" +Endpoints.GET_ALL_CONTACTS_STATUS.url()+ "): " + objectStatus);
         } catch (Exception e) {
-          
+            logger.severe("Error while send get request to: " + Endpoints.GET_ALL_CONTACTS_STATUS.url() + e.getMessage());
         }
+        
         i=0;
         for (JsonValue value : object.get("contacts").asArray()) {
             String status = null;
@@ -374,12 +378,18 @@ public class FullClient extends SkypeImpl {
     public void updateContactList() throws ConnectionException {
         String contactsStatus = "";
         int i = 0;
+        
+        logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS.url());
         JsonObject object = Endpoints.GET_ALL_CONTACTS
                 .open(this, getUsername(), "notification")
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts")
                 .get();
+        logger.finer("Response (" +Endpoints.GET_ALL_CONTACTS.url()+ "): " + object);
+        
         for (JsonValue valueStatus : object.get("contacts").asArray()) {
+            if (i > 9)
+                break;
             JsonObject objStatus = valueStatus.asObject();
             String idSkip = objStatus.get("person_id").asString();
             if (idSkip.contains("28:concierge") || idSkip.contains("8:echo123") || idSkip.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
@@ -394,16 +404,20 @@ public class FullClient extends SkypeImpl {
                 i++;
             }
         }
+        
         JsonObject objectStatus = null;
         try {
+          logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS_STATUS.url());
           objectStatus = Endpoints.GET_ALL_CONTACTS_STATUS
                 .open(this, contactsStatus)
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts status")
                 .get();
+          logger.finer("Response (" +Endpoints.GET_ALL_CONTACTS_STATUS.url()+ "): " + objectStatus);
         } catch (Exception e) {
-          
+            logger.severe("Error while send get request to: " + Endpoints.GET_ALL_CONTACTS_STATUS.url() + e.getMessage());
         }
+        
         i=0;
         for (JsonValue value : object.get("contacts").asArray()) {
             String status = null;

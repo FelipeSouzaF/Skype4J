@@ -48,8 +48,10 @@ public interface Skype {
      * @throws InvalidCredentialsException If you've provided invalid credentials or if you hit a CAPTCHA
      * @throws ConnectionException         If a network error occured while connecting
      * @throws NotParticipatingException   If the guest account cannot log in due to the chat not being open
+     * @throws com.samczsun.skype4j.exceptions.WrongPasswordException
+     * @throws com.samczsun.skype4j.exceptions.AccountNotFoundException
      */
-    void login() throws InvalidCredentialsException, ConnectionException, NotParticipatingException;
+    void login() throws InvalidCredentialsException, ConnectionException, NotParticipatingException, WrongPasswordException, AccountNotFoundException;
 
     /**
      * Subscribe to the HTTP long polling service.

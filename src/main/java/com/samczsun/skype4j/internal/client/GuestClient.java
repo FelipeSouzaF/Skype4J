@@ -18,9 +18,11 @@ package com.samczsun.skype4j.internal.client;
 
 import com.eclipsesource.json.JsonObject;
 import com.samczsun.skype4j.chat.GroupChat;
+import com.samczsun.skype4j.exceptions.AccountNotFoundException;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.InvalidCredentialsException;
 import com.samczsun.skype4j.exceptions.NotParticipatingException;
+import com.samczsun.skype4j.exceptions.WrongPasswordException;
 import com.samczsun.skype4j.exceptions.handler.ErrorHandler;
 import com.samczsun.skype4j.internal.Endpoints;
 import com.samczsun.skype4j.internal.SkypeImpl;

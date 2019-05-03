@@ -44,8 +44,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -84,7 +87,7 @@ public abstract class SkypeImpl implements Skype {
     protected SkypeWebSocket wss;
     protected String conversationBackwardLink;
     protected String conversationSyncState;
-    protected Logger logger = Logger.getLogger(Skype.class.getCanonicalName());
+    protected Logger logger = Logger.getLogger("log_" + this.getUsername());
     private String skypeToken;
     private long skypeTokenExpiryTime;
     private String registrationToken;
@@ -93,6 +96,7 @@ public abstract class SkypeImpl implements Skype {
     private String endpointId;
     private JsonObject trouterData;
     private int socketId = 1;
+    private boolean appendLogFile = false;
 
     // Data
     protected final Map<String, ChatImpl> allChats = Collections.synchronizedMap(new HashMap<>());
@@ -110,31 +114,42 @@ public abstract class SkypeImpl implements Skype {
         } else {
             Handler handler = new ConsoleHandler();
             handler.setFormatter(new Formatter() {
+//                @Override
+//                public String format(LogRecord record) {
+//                    StringBuilder sb = new StringBuilder();
+//                    sb.append("[").append(record.getLevel().getLocalizedName()).append("] ");
+//                    sb.append("[").append(new Date(record.getMillis())).append("] ");
+//                    sb.append(formatMessage(record)).append(LINE_SEPARATOR);
+//
+//                    if (record.getThrown() != null) {
+//                        StringWriter sw = new StringWriter();
+//                        PrintWriter pw = new PrintWriter(sw);
+//                        record.getThrown().printStackTrace(pw);
+//                        pw.close();
+//                        sb.append(sw.toString());
+//                    }
+//                    return sb.toString();
+//                }
                 @Override
                 public String format(LogRecord record) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("[").append(record.getLevel().getLocalizedName()).append("] ");
-                    sb.append("[").append(new Date(record.getMillis())).append("] ");
-                    sb.append(formatMessage(record)).append(LINE_SEPARATOR);
-
-                    if (record.getThrown() != null) {
-                        StringWriter sw = new StringWriter();
-                        PrintWriter pw = new PrintWriter(sw);
-                        record.getThrown().printStackTrace(pw);
-                        pw.close();
-                        sb.append(sw.toString());
-                    }
-                    return sb.toString();
+                  DateFormat df = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss.SSS");
+                  StringBuilder builder = new StringBuilder(1000);
+                  builder.append(df.format(new Date(record.getMillis())));
+                  builder.append(" [").append(record.getLevel()).append("] | ");
+                  builder.append(formatMessage(record));
+                  builder.append("\n");
+                  return builder.toString();
                 }
             });
             this.logger.setUseParentHandlers(false);
-//            this.logger.addHandler(handler);
+            this.logger.addHandler(handler);
+
         }
           this.status = null;
     }
     
     @Override
-    public void login() throws ConnectionException, InvalidCredentialsException {
+    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException {
         Endpoints.ELIGIBILITY_CHECK.open(this)
                 .expect(200, "You are not eligible to use Skype for Web!")
                 .get();
@@ -245,7 +260,11 @@ public abstract class SkypeImpl implements Skype {
                 shutdownThread.shutdown();
                 reauthThread.kill();
                 scheduler.shutdownNow();
-                while (!scheduler.isTerminated()) ;
+                while (!scheduler.isTerminated()) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) { return; }
+                }
                 doShutdown();
             });
         }
@@ -467,6 +486,7 @@ public abstract class SkypeImpl implements Skype {
 
     public void subscribe() throws ConnectionException {
         try {
+            logger.finer("Sending post request to: " + Endpoints.SUBSCRIPTIONS_URL.url());
             HttpURLConnection connection = Endpoints.SUBSCRIPTIONS_URL
                     .open(this)
                     .dontConnect()
@@ -505,7 +525,7 @@ public abstract class SkypeImpl implements Skype {
         }
     }
 
-    public void reauthenticate() throws ConnectionException, InvalidCredentialsException, NotParticipatingException {
+    public void reauthenticate() throws ConnectionException, InvalidCredentialsException, NotParticipatingException, WrongPasswordException, AccountNotFoundException {
         //todo: keep subscribed until reauth is finished so events aren't lost
         doShutdown();
         login();
@@ -653,6 +673,7 @@ public abstract class SkypeImpl implements Skype {
     }
     
     public void setVisibility(Visibility visibility) throws ConnectionException {
+        logger.finer("Sending put request to: " + Endpoints.VISIBILITY.url());
         Endpoints.VISIBILITY
                 .open(this)
                 .expect(200, "While updating visibility")
@@ -684,5 +705,25 @@ public abstract class SkypeImpl implements Skype {
     }
     public String getEndpointId() {
         return this.endpointId;
+    }
+    
+    public void setDebug(Path path) throws IOException {
+      if (path == null) {
+        logger.setLevel(Level.OFF);
+      } else {
+        logger.setLevel(Level.ALL);
+        logger.setUseParentHandlers(false);
+        for (Handler handler : logger.getHandlers()) {
+          logger.removeHandler(handler);
+          handler.close();
+        }
+        FileHandler fh = new FileHandler(path.toString(), this.appendLogFile);
+        fh.setFormatter(new SimpleFormatter());
+        logger.addHandler(fh);
+      }
+    }
+    
+    public void setAppendLogFile(boolean appendLogFile) {
+        this.appendLogFile = appendLogFile;
     }
 }
