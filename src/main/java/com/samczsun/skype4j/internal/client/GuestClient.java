@@ -22,6 +22,7 @@ import com.samczsun.skype4j.exceptions.AccountNotFoundException;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.InvalidCredentialsException;
 import com.samczsun.skype4j.exceptions.NotParticipatingException;
+import com.samczsun.skype4j.exceptions.SuspiciousLoginException;
 import com.samczsun.skype4j.exceptions.WrongPasswordException;
 import com.samczsun.skype4j.exceptions.handler.ErrorHandler;
 import com.samczsun.skype4j.internal.Endpoints;
@@ -54,7 +55,7 @@ public class GuestClient extends SkypeImpl {
     }
 
     @Override
-    public void login() throws ConnectionException, InvalidCredentialsException {
+    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException {
         JsonObject response = Endpoints.NEW_GUEST
                 .open(this)
                 .as(JsonObject.class)

@@ -50,8 +50,9 @@ public interface Skype {
      * @throws NotParticipatingException   If the guest account cannot log in due to the chat not being open
      * @throws com.samczsun.skype4j.exceptions.WrongPasswordException
      * @throws com.samczsun.skype4j.exceptions.AccountNotFoundException
+     * @throws com.samczsun.skype4j.exceptions.SuspiciousLoginException
      */
-    void login() throws InvalidCredentialsException, ConnectionException, NotParticipatingException, WrongPasswordException, AccountNotFoundException;
+    void login() throws InvalidCredentialsException, ConnectionException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException;
 
     /**
      * Subscribe to the HTTP long polling service.

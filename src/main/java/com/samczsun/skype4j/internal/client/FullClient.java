@@ -20,11 +20,13 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.samczsun.skype4j.chat.GroupChat;
+import com.samczsun.skype4j.events.SaveContactsEvent;
 import com.samczsun.skype4j.events.contact.ContactRequestEvent;
 import com.samczsun.skype4j.exceptions.AccountNotFoundException;
 import com.samczsun.skype4j.exceptions.ChatNotFoundException;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.InvalidCredentialsException;
+import com.samczsun.skype4j.exceptions.SuspiciousLoginException;
 import com.samczsun.skype4j.exceptions.WrongPasswordException;
 import com.samczsun.skype4j.exceptions.handler.ErrorHandler;
 import com.samczsun.skype4j.exceptions.handler.ErrorSource;
@@ -66,7 +68,7 @@ public class FullClient extends SkypeImpl {
     }
 
     @Override
-    public void login() throws InvalidCredentialsException, ConnectionException, WrongPasswordException, AccountNotFoundException {
+    public void login() throws InvalidCredentialsException, ConnectionException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException {
         logger.finer("Refreshing tokens");
     
         Response authorize = null;
@@ -132,39 +134,45 @@ public class FullClient extends SkypeImpl {
             int index = post.body().indexOf("sErrTxt:'");
             int end;
             end = post.body().indexOf('\'', index + "sErrTxt:'".length());
-            while (post.body().charAt(end - 1) == '\\') {
-              end = post.body().indexOf('\'', end + 1);
-            }
-            if (index == -1 || end == -1) {
-              IOException e = new IOException("Error while connecting to Live: not redirected, no reason given.");
-              logger.log(Level.SEVERE, "", e);
-                try {
-                    throw e;
-                } catch (IOException ex) {
-                    Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
+            
+            if (!(index == -1 && end == -1)) {
+                while (post.body().charAt(end - 1) == '\\') {
+                  end = post.body().indexOf('\'', end + 1);
                 }
-            }
+                if (index == -1 || end == -1) {
+                  IOException e = new IOException("Error while connecting to Live: not redirected, no reason given.");
+                  logger.log(Level.SEVERE, "", e);
+                    try {
+                        throw e;
+                    } catch (IOException ex) {
+                        Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
 
-            String errMessage = post.body().substring(index + "sErrTxt:'".length(), end);
-            if ((errMessage.contains("account") || errMessage.contains("password")) && errMessage.contains("incorrect")) {
-              WrongPasswordException e = new WrongPasswordException("Error while connecting to Live: " + errMessage);
-              logger.severe(e.toString());
-              throw e;
-            } else if (errMessage.toLowerCase().contains("microsoft account doesn\\'t exist")) {
-              AccountNotFoundException e = new AccountNotFoundException("Error while connecting to Live: " + errMessage);
-              logger.severe(e.toString());
-              throw e;
+                String errMessage = post.body().substring(index + "sErrTxt:'".length(), end);
+                if ((errMessage.contains("account") || errMessage.contains("password")) && errMessage.contains("incorrect")) {
+                  WrongPasswordException e = new WrongPasswordException("Error while connecting to Live: " + errMessage);
+                  logger.severe(e.toString());
+                  throw e;
+                } else if (errMessage.toLowerCase().contains("microsoft account doesn\\'t exist")) {
+                  AccountNotFoundException e = new AccountNotFoundException("Error while connecting to Live: " + errMessage);
+                  logger.severe(e.toString());
+                  throw e;
+                } else {
+                  IOException e = new IOException("Error while connecting to Live: " + errMessage);
+                  logger.severe(e.toString());
+                    try {
+                        throw e;
+                    } catch (IOException ex) {
+                        Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
             } else {
-              IOException e = new IOException("Error while connecting to Live: " + errMessage);
-              logger.severe(e.toString());
-                try {
-                    throw e;
-                } catch (IOException ex) {
-                    Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                SuspiciousLoginException e = new SuspiciousLoginException("Error while connecting to Live, suspicious login");
+                logger.severe(e.toString());
+                throw e;
             }
-          }
-
+        }
         String url = post.header("Location");
 
         int refreshTokenStart = url.indexOf("refresh_token=");
@@ -265,7 +273,7 @@ public class FullClient extends SkypeImpl {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
+        
         super.login();
     }
 
@@ -283,69 +291,35 @@ public class FullClient extends SkypeImpl {
 
     @Override
     public void loadAllContacts() throws ConnectionException {
-        String contactsStatus = "";
         int i = 0;
         
-        logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS.url());
-        JsonObject object = Endpoints.GET_ALL_CONTACTS
+        JsonObject object = null;
+        try {
+            setProfileInfo(this);
+            
+            logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS.url());
+            object = Endpoints.GET_ALL_CONTACTS
                 .open(this)
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts")
                 .get();
-        logger.finer("Response (" +Endpoints.GET_ALL_CONTACTS.url()+ "): " + object);
-        for (JsonValue valueStatus : object.get("contacts").asArray()) {
-            if (i > 9)
-                break;
-            JsonObject objStatus = valueStatus.asObject();
-            String idSkip = objStatus.get("person_id").asString();
-            if (idSkip.contains("28:concierge") || idSkip.contains("8:echo123") || idSkip.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
-                continue;
 
-            if (objStatus.get("suggested") == null || !objStatus.get("suggested").asBoolean()) {
-                if (i == 0) {
-                    contactsStatus = "cMri=" + objStatus.get("person_id").asString();
-                } else {
-                    contactsStatus += "&cMri=" + objStatus.get("person_id").asString();
+            for (JsonValue value : object.get("contacts").asArray()) {
+
+                JsonObject obj = value.asObject();
+                if (obj.get("suggested") == null || !obj.get("suggested").asBoolean()) {
+                    if (!allContacts.containsKey(obj.get("person_id").asString())) {
+                        logger.finer("Implementing contact: " + obj.get("person_id").asString());
+                        this.allContacts.put(obj.get("person_id").asString(), new ContactImpl(this, obj));
+                    }
                 }
                 i++;
             }
-        }
-        JsonObject objectStatus = null;
-        try {
-          logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS_STATUS.url());
-          objectStatus = Endpoints.GET_ALL_CONTACTS_STATUS
-                .open(this, contactsStatus)
-                .as(JsonObject.class)
-                .expect(200, "While loading contacts status")
-                .get();
-          logger.finer("Response (" +Endpoints.GET_ALL_CONTACTS_STATUS.url()+ "): " + objectStatus);
+
+
         } catch (Exception e) {
-            logger.severe("Error while send get request to: " + Endpoints.GET_ALL_CONTACTS_STATUS.url() + e.getMessage());
-        }
-        
-        i=0;
-        for (JsonValue value : object.get("contacts").asArray()) {
-            String status = null;
-            
-            if (objectStatus != null) {
-                try {
-                    JsonObject objStatus = (JsonObject) objectStatus.get("Responses").asArray().get(i);
-                    objStatus = (JsonObject) objStatus.get("Payload");
-                    status = Utils.getString(objStatus, "status");
-                } catch (Exception e) { }
-            }
-            
-            JsonObject obj = value.asObject();
-            if (obj.get("suggested") == null || !obj.get("suggested").asBoolean()) {
-                String id = value.asObject().get("person_id").asString();
-                if (id.contains("28:concierge") || id.contains("8:echo123") || id.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
-                    continue;
-                if (!allContacts.containsKey(obj.get("person_id").asString())) {
-                    this.allContacts.put(obj.get("person_id").asString(), new ContactImpl(this, obj, status));
-                }
-            }
-            i++;
-        }
+            logger.severe("Error while send get request to: " + Endpoints.GET_ALL_CONTACTS.url() + e.getMessage());
+        }  
     }
 
     @Override
@@ -376,69 +350,31 @@ public class FullClient extends SkypeImpl {
 
     @Override
     public void updateContactList() throws ConnectionException {
-        String contactsStatus = "";
         int i = 0;
-        
-        logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS.url());
-        JsonObject object = Endpoints.GET_ALL_CONTACTS
+        JsonObject object = null;
+
+        try {
+            setProfileInfo(this);
+            
+            logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS.url());
+            object = Endpoints.GET_ALL_CONTACTS
                 .open(this, getUsername(), "notification")
                 .as(JsonObject.class)
                 .expect(200, "While loading contacts")
                 .get();
-        logger.finer("Response (" +Endpoints.GET_ALL_CONTACTS.url()+ "): " + object);
-        
-        for (JsonValue valueStatus : object.get("contacts").asArray()) {
-            if (i > 9)
-                break;
-            JsonObject objStatus = valueStatus.asObject();
-            String idSkip = objStatus.get("person_id").asString();
-            if (idSkip.contains("28:concierge") || idSkip.contains("8:echo123") || idSkip.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
-                continue;
-            
-            if (objStatus.get("suggested") == null || !objStatus.get("suggested").asBoolean()) {
-                if (i == 0) {
-                    contactsStatus = "cMri=" + objStatus.get("person_id").asString();
-                } else {
-                    contactsStatus += "&cMri=" + objStatus.get("person_id").asString();
+
+            for (JsonValue value : object.get("contacts").asArray()) {
+                if (value.asObject().get("suggested") == null || !value.asObject().get("suggested").asBoolean()) {
+                    String id = value.asObject().get("person_id").asString();
+                    logger.finer("Updating contact: " + id);
+                    ContactImpl impl = (ContactImpl) allContacts.get(id);
+                    if (impl == null) impl = (ContactImpl) loadContact(id);
+                    impl.update(value.asObject());
                 }
                 i++;
             }
-        }
-        
-        JsonObject objectStatus = null;
-        try {
-          logger.finer("Sending get request to: " + Endpoints.GET_ALL_CONTACTS_STATUS.url());
-          objectStatus = Endpoints.GET_ALL_CONTACTS_STATUS
-                .open(this, contactsStatus)
-                .as(JsonObject.class)
-                .expect(200, "While loading contacts status")
-                .get();
-          logger.finer("Response (" +Endpoints.GET_ALL_CONTACTS_STATUS.url()+ "): " + objectStatus);
         } catch (Exception e) {
-            logger.severe("Error while send get request to: " + Endpoints.GET_ALL_CONTACTS_STATUS.url() + e.getMessage());
-        }
-        
-        i=0;
-        for (JsonValue value : object.get("contacts").asArray()) {
-            String status = null;
-            
-            if (objectStatus != null) {
-                try {
-                    JsonObject objStatus = (JsonObject) objectStatus.get("Responses").asArray().get(i);
-                    objStatus = (JsonObject) objStatus.get("Payload");
-                    status = Utils.getString(objStatus, "status");
-                } catch (Exception e) { }
-            }
-            
-            if (value.asObject().get("suggested") == null || !value.asObject().get("suggested").asBoolean()) {
-                String id = value.asObject().get("person_id").asString();
-                if (id.contains("28:concierge") || id.contains("8:echo123") || id.contains("28:0d5d6cff-595d-49d7-9cf8-973173f5233b"))
-                    continue;
-                ContactImpl impl = (ContactImpl) allContacts.get(id);
-                if (impl == null) impl = (ContactImpl) loadContact(id);
-                impl.update(value.asObject(), status);
-            }
-            i++;
+            logger.severe("Error while send get request to: " + Endpoints.GET_ALL_CONTACTS.url() + e.getMessage());
         }
     }
 
@@ -468,6 +404,40 @@ public class FullClient extends SkypeImpl {
         } else {
             throw ExceptionHandler.generateException("No chat location", con);
         }
+    }
+    
+    private static void setProfileInfo(SkypeImpl skype) throws ConnectionException {
+        JsonObject obj = Endpoints.PROFILE_INFO
+                .open(skype)
+                .expect(200, "While getting profile info")
+                .as(JsonObject.class)
+                .get();
+        String userPhones = "";
+        String displayName = "";
+        if (Utils.getString(obj, "lastname") != null){
+            displayName = Utils.getString(obj, "firstname") + " " + Utils.getString(obj, "lastname");
+        } else {
+            displayName = Utils.getString(obj, "firstname");
+        }
+        if (Utils.getString(obj, "phoneHome") != null){
+            userPhones = Utils.getString(obj, "phoneHome");
+        }
+        if (Utils.getString(obj, "phoneMobile") != null){
+            if (userPhones == ""){
+                userPhones = Utils.getString(obj, "phoneMobile");
+            } else {
+                userPhones += ", " + Utils.getString(obj, "phoneMobile");
+            }
+        }
+        if (Utils.getString(obj, "phoneOffice") != null){
+            if (userPhones == ""){
+                userPhones = Utils.getString(obj, "phoneOffice");
+            } else {
+                userPhones += ", " + Utils.getString(obj, "phoneOffice");
+            }
+        }
+        skype.setUserPhones(userPhones);
+        skype.setDisplayName(displayName);
     }
 
     private String hash() {

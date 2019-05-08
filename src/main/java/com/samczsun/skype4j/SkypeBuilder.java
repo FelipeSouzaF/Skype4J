@@ -118,6 +118,7 @@ public class SkypeBuilder {
      * Build the Skype instance!
      *
      * @return The Skype instance
+     * @throws com.samczsun.skype4j.exceptions.ConnectionException
      */
     public Skype build() throws ConnectionException {
         if (resources.isEmpty()) {

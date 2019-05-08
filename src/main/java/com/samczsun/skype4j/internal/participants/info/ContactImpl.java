@@ -120,15 +120,13 @@ public class ContactImpl implements Contact {
         }
     }
 
-    public ContactImpl(SkypeImpl skype, JsonObject contact, String contactStatus) throws ConnectionException {
+    public ContactImpl(SkypeImpl skype, JsonObject contact) throws ConnectionException {
         this.skype = skype;
-        getObject(skype, username);
-        update(contact, contactStatus);
+        update(contact);
     }
     
     public ContactImpl(SkypeImpl skype) throws ConnectionException {
         this.skype = skype;
-        getObject(skype, username);
     }
 
     private void updateContactInfo() throws ConnectionException {
@@ -296,7 +294,7 @@ public class ContactImpl implements Contact {
         return skype.getOrLoadChat("8:" + this.username);
     }
 
-    public void update(JsonObject contact, String contactStatus) throws ConnectionException {
+    public void update(JsonObject contact) throws ConnectionException {
         this.username = contact.get("person_id").asString();
         this.isAuthorized = contact.get("authorized").asBoolean();
         this.isBlocked = contact.get("blocked").asBoolean();
@@ -305,7 +303,7 @@ public class ContactImpl implements Contact {
         this.mood = Utils.getString(contact, "mood");
         this.type = Utils.getString(contact, "type");
         this.authCertificate = Utils.getString(contact, "auth_certificate");
-        this.status = contactStatus;
+        this.status = null;
         if (contact.get("locations") != null) {
             JsonObject locations = contact.get("locations").asArray().get(0).asObject();
             this.country = locations.get("country") == null ? null : locations.get("country").asString();

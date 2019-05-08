@@ -149,7 +149,7 @@ public abstract class SkypeImpl implements Skype {
     }
     
     @Override
-    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException {
+    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException {
         Endpoints.ELIGIBILITY_CHECK.open(this)
                 .expect(200, "You are not eligible to use Skype for Web!")
                 .get();
@@ -168,7 +168,7 @@ public abstract class SkypeImpl implements Skype {
             while (!scheduler.isTerminated()) ;
         }
         shutdownThread = Executors.newSingleThreadExecutor(new SkypeThreadFactory(this, "Shutdown"));
-        scheduler = Executors.newFixedThreadPool(4, new SkypeThreadFactory(this, "Poller"));
+        scheduler = Executors.newFixedThreadPool(1, new SkypeThreadFactory(this, "Poller"));
         (serverPingThread = new ServerPingThread(this)).start();
         (reauthThread = new AuthenticationChecker(this)).start();
     }
@@ -525,7 +525,7 @@ public abstract class SkypeImpl implements Skype {
         }
     }
 
-    public void reauthenticate() throws ConnectionException, InvalidCredentialsException, NotParticipatingException, WrongPasswordException, AccountNotFoundException {
+    public void reauthenticate() throws ConnectionException, InvalidCredentialsException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException {
         //todo: keep subscribed until reauth is finished so events aren't lost
         doShutdown();
         login();
