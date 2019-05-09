@@ -226,6 +226,7 @@ public class Endpoints {
         private String cause;
         private boolean dontConnect;
         private boolean redirect = true;
+        private boolean timeout = true;
 
         private EndpointConnection(Endpoints endpoint, SkypeImpl skype, Object[] args) {
             this.endpoint = endpoint;
@@ -362,6 +363,10 @@ public class Endpoints {
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod(method);
                 connection.setInstanceFollowRedirects(false);
+                if (this.timeout) {
+                    connection.setConnectTimeout(20000);
+                    connection.setReadTimeout(20000);
+                }
                 for (Map.Entry<String, String> ent : headers.entrySet()) {
                     connection.setRequestProperty(ent.getKey(), ent.getValue());
                 }
@@ -410,6 +415,11 @@ public class Endpoints {
                 result.append(Encoder.encode(cookie.getKey())).append("=").append(Encoder.encode(cookie.getValue())).append(";");
             }
             return result.toString();
+        }
+
+        public EndpointConnection<E_TYPE> dontTimeout() {
+            this.timeout = false;
+            return this;
         }
     }
 

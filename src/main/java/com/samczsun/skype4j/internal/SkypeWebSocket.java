@@ -40,12 +40,10 @@ import java.nio.channels.SocketChannel;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class SkypeWebSocket extends WebSocketClient {
     private final SkypeImpl skype;
@@ -174,6 +172,7 @@ public class SkypeWebSocket extends WebSocketClient {
 
     @Override
     public void onClose(int i, String s, boolean b) {
+        skype.shutdown();
         if (pingThread != null) {
             pingThread.interrupt();
         }

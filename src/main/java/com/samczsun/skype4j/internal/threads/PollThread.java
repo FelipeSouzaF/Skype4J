@@ -13,7 +13,6 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-
 package com.samczsun.skype4j.internal.threads;
 
 import com.eclipsesource.json.JsonObject;
@@ -55,7 +54,8 @@ public class PollThread extends Thread {
             final Endpoints.EndpointConnection<HttpURLConnection> epconn = Endpoints.POLL
                     .open(skype, pollId)
                     .header("Content-Type", "application/json")
-                    .dontConnect();
+                    .dontConnect()
+                    .dontTimeout();
             final AtomicBoolean complete = new AtomicBoolean(false);
             while (skype.isAuthenticated()) {
                 try {
@@ -157,14 +157,18 @@ public class PollThread extends Thread {
                 }
             }
         }
+        
+        skype.shutdown();
     }
 
     public void shutdown() {
         this.interrupt();
         while (this.getState() != State.TERMINATED) {
             try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) { return; }
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                return;
+            }
         }
         if (this.connection != null) {
             this.connection.disconnect();
@@ -172,8 +176,10 @@ public class PollThread extends Thread {
         this.inputFetcher.shutdownNow();
         while (!this.inputFetcher.isTerminated()) {
             try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) { return; }
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                return;
+            }
         }
     }
 }

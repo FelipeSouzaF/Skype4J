@@ -165,7 +165,11 @@ public abstract class SkypeImpl implements Skype {
         }
         if (scheduler != null) {
             scheduler.shutdownNow();
-            while (!scheduler.isTerminated()) ;
+            while (!scheduler.isTerminated()) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignore) { }
+            }
         }
         shutdownThread = Executors.newSingleThreadExecutor(new SkypeThreadFactory(this, "Shutdown"));
         scheduler = Executors.newFixedThreadPool(1, new SkypeThreadFactory(this, "Poller"));
@@ -515,6 +519,13 @@ public abstract class SkypeImpl implements Skype {
                 this.pollThread = null;
             }
             (pollThread = new PollThread(this, Encoder.encode(endpointId))).start();
+            
+            if (this.activeThread != null) {
+                this.activeThread.kill();
+                this.activeThread = null;
+            }
+            (activeThread = new ActiveThread(this, Encoder.encode(endpointId))).start();
+            
             subscribed.set(true);
         } catch (IOException io) {
             throw ExceptionHandler.generateException("While subscribing", io);
@@ -544,11 +555,6 @@ public abstract class SkypeImpl implements Skype {
         this.registrationTokenExpiryTime = Long.parseLong(splits[1].substring("expires=".length() + 1)) * 1000;
         if (splits.length > 2) {
             this.endpointId = splits[2].split("=")[1];
-            if (this.activeThread != null) {
-                this.activeThread.kill();
-                this.activeThread = null;
-            }
-            (activeThread = new ActiveThread(this, Encoder.encode(endpointId))).start();
         }
     }
 
