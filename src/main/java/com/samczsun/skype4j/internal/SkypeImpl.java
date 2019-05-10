@@ -149,7 +149,7 @@ public abstract class SkypeImpl implements Skype {
     }
     
     @Override
-    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException {
+    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException {
         Endpoints.ELIGIBILITY_CHECK.open(this)
                 .expect(200, "You are not eligible to use Skype for Web!")
                 .get();
@@ -536,7 +536,7 @@ public abstract class SkypeImpl implements Skype {
         }
     }
 
-    public void reauthenticate() throws ConnectionException, InvalidCredentialsException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException {
+    public void reauthenticate() throws ConnectionException, InvalidCredentialsException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException {
         //todo: keep subscribed until reauth is finished so events aren't lost
         doShutdown();
         login();

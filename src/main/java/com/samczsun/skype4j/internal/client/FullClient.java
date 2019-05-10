@@ -68,7 +68,7 @@ public class FullClient extends SkypeImpl {
     }
 
     @Override
-    public void login() throws InvalidCredentialsException, ConnectionException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException {
+    public void login() throws InvalidCredentialsException, ConnectionException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException {
         logger.finer("Refreshing tokens");
     
         Response authorize = null;
@@ -81,12 +81,8 @@ public class FullClient extends SkypeImpl {
         String MSPOK = authorize.cookie("MSPOK");
         if (MSPOK == null) {
           IOException e = new IOException("Error while connecting to Live: MSPOK not set.");
-          logger.log(Level.SEVERE, "", e);
-            try {
-                throw e;
-            } catch (IOException ex) {
-                Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-            }
+          logger.severe(e.toString());
+          throw e;
         }
 
         Elements PPFTs = null;
@@ -106,12 +102,8 @@ public class FullClient extends SkypeImpl {
         }
         if (PPFTs == null || PPFTs.isEmpty()) {
           IOException e = new IOException("Error while connecting to Live: PPFT not found.");
-          logger.log(Level.SEVERE, "", e);
-            try {
-                throw e;
-            } catch (IOException ex) {
-                Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-            }
+          logger.severe(e.toString());
+          throw e;
         }
         String PPFT = PPFTs.first().attr("value");
 
@@ -141,12 +133,8 @@ public class FullClient extends SkypeImpl {
                 }
                 if (index == -1 || end == -1) {
                   IOException e = new IOException("Error while connecting to Live: not redirected, no reason given.");
-                  logger.log(Level.SEVERE, "", e);
-                    try {
-                        throw e;
-                    } catch (IOException ex) {
-                        Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                  logger.severe(e.toString());
+                  throw e;
                 }
 
                 String errMessage = post.body().substring(index + "sErrTxt:'".length(), end);
@@ -161,11 +149,7 @@ public class FullClient extends SkypeImpl {
                 } else {
                   IOException e = new IOException("Error while connecting to Live: " + errMessage);
                   logger.severe(e.toString());
-                    try {
-                        throw e;
-                    } catch (IOException ex) {
-                        Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                  throw e;
                 }
             } else {
                 SuspiciousLoginException e = new SuspiciousLoginException("Error while connecting to Live, suspicious login");
@@ -175,36 +159,11 @@ public class FullClient extends SkypeImpl {
         }
         String url = post.header("Location");
 
-        int refreshTokenStart = url.indexOf("refresh_token=");
-        if (refreshTokenStart == -1) {
-          IOException e = new IOException("Error while connecting to Live: refresh token not found.");
-          logger.log(Level.SEVERE, "", e);
-                try {
-                    throw e;
-                } catch (IOException ex) {
-                    Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-                }
-        }
-        int refreshTokenEnd = url.indexOf('&', refreshTokenStart + "refresh_token=".length());
-        if (refreshTokenEnd == -1) {
-          refreshTokenEnd = url.length();
-        }
-        String refreshToken = url.substring(refreshTokenStart + "refresh_token=".length(), refreshTokenEnd);
-        try {
-            refreshToken = URLDecoder.decode(refreshToken, StandardCharsets.UTF_8.name());
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
         int accessTokenStart = url.indexOf("access_token=");
         if (accessTokenStart == -1) {
           IOException e = new IOException("Error while connecting to Live: access token not found.");
-          logger.log(Level.SEVERE, "", e);
-                try {
-                    throw e;
-                } catch (IOException ex) {
-                    Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
-                }
+          logger.severe(e.toString());
+          throw e;
         }
         int accessTokenEnd = url.indexOf('&', accessTokenStart + "access_token=".length());
         if (accessTokenEnd == -1) {
@@ -216,20 +175,6 @@ public class FullClient extends SkypeImpl {
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        int expires = 86400;
-        int expiresStart = url.indexOf("expires_in=");
-        if (expiresStart != -1) {
-          int expiresEnd = url.indexOf('&', expiresStart + "expires_in=".length());
-          if (expiresEnd == -1) {
-            expiresEnd = url.length();
-          }
-          try {
-            expires = Integer.parseInt(url.substring(expiresStart, expiresEnd));
-          } catch (NumberFormatException ignore) {
-          }
-        }
-        
         
         Map<String, String> data = new HashMap<>();
         data.put("scopes", "client");

@@ -30,6 +30,7 @@ import com.samczsun.skype4j.internal.SkypeImpl;
 import com.samczsun.skype4j.internal.Utils;
 import com.samczsun.skype4j.internal.utils.UncheckedRunnable;
 import com.samczsun.skype4j.participants.info.Contact;
+import java.io.IOException;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;
@@ -55,7 +56,7 @@ public class GuestClient extends SkypeImpl {
     }
 
     @Override
-    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException {
+    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException {
         JsonObject response = Endpoints.NEW_GUEST
                 .open(this)
                 .as(JsonObject.class)

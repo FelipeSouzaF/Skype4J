@@ -23,6 +23,7 @@ import com.samczsun.skype4j.exceptions.*;
 import com.samczsun.skype4j.exceptions.handler.ErrorSource;
 import com.samczsun.skype4j.participants.info.BotInfo;
 import com.samczsun.skype4j.participants.info.Contact;
+import java.io.IOException;
 
 import java.util.Collection;
 import java.util.List;
@@ -51,8 +52,9 @@ public interface Skype {
      * @throws com.samczsun.skype4j.exceptions.WrongPasswordException
      * @throws com.samczsun.skype4j.exceptions.AccountNotFoundException
      * @throws com.samczsun.skype4j.exceptions.SuspiciousLoginException
+     * @throws java.io.IOException
      */
-    void login() throws InvalidCredentialsException, ConnectionException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException;
+    void login() throws InvalidCredentialsException, ConnectionException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException;
 
     /**
      * Subscribe to the HTTP long polling service.
