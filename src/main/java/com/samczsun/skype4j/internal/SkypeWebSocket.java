@@ -113,7 +113,7 @@ public class SkypeWebSocket extends WebSocketClient {
                     skype.updateContactList();
                     SaveContactsEvent eventContacts = new SaveContactsEvent();
                     skype.getEventDispatcher().callEvent(eventContacts);
-                } catch (ConnectionException e) {
+                } catch (Exception e) {
                     skype.handleError(ErrorSource.UPDATING_CONTACT_LIST, e, false);
                 }
             } else if (event == 14) {
@@ -121,7 +121,7 @@ public class SkypeWebSocket extends WebSocketClient {
                     if (skype instanceof FullClient) {
                         skype.getContactRequests(true);
                     }
-                } catch (ConnectionException e) {
+                } catch (Exception e) {
                     skype.getLogger().log(Level.SEVERE, String.format("Unhandled exception while parsing websocket message '%s'", s), e);
                 }
             } else {

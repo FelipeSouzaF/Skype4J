@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -68,14 +69,17 @@ public class FullClient extends SkypeImpl {
     }
 
     @Override
-    public void login() throws InvalidCredentialsException, ConnectionException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException {
+    public void login() throws InvalidCredentialsException, ConnectionException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException, UnknownHostException, Exception {
         logger.finer("Refreshing tokens");
     
         Response authorize = null;
         try {
             authorize = Jsoup.connect(SERVER_HOSTNAME + "/oauth20_authorize.srf?client_id=00000000480BC46C&scope=service%3A%3Alw.skype.com%3A%3AMBI_SSL&response_type=token&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf&state=999&locale=en").maxBodySize(100 * 1024 * 1024).timeout(30000).method(Connection.Method.GET).ignoreContentType(true).ignoreHttpErrors(true).execute();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
+            this.handleError(ErrorSource.SESSION_ACTIVE, ex, false);
             Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
+            UnknownHostException e = new UnknownHostException();
+            throw e;
         }
 
         String MSPOK = authorize.cookie("MSPOK");
@@ -235,7 +239,7 @@ public class FullClient extends SkypeImpl {
     }
 
     @Override
-    public void loadAllContacts() throws ConnectionException {
+    public void loadAllContacts() throws Exception {
         int i = 0;
         
         JsonObject object = null;
@@ -268,7 +272,7 @@ public class FullClient extends SkypeImpl {
     }
 
     @Override
-    public void getContactRequests(boolean fromWebsocket) throws ConnectionException {
+    public void getContactRequests(boolean fromWebsocket) throws Exception {
         JsonArray array =  Endpoints.AUTH_REQUESTS_URL
                 .open(this)
                 .as(JsonArray.class)
@@ -294,7 +298,7 @@ public class FullClient extends SkypeImpl {
     }
 
     @Override
-    public void updateContactList() throws ConnectionException {
+    public void updateContactList() throws Exception {
         int i = 0;
         JsonObject object = null;
 

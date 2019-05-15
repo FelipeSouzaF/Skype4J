@@ -94,6 +94,10 @@ public class Utils {
     public static String getString(JsonObject object, String key) {
         return object.get(key) == null ? null : object.get(key).isNull() ? null : object.get(key).asString();
     }
+    
+    public static String getString(JsonObject object, String key, String nullValue) {
+        return object.get(key) == null ? nullValue : object.get(key).isNull() ? nullValue : object.get(key).asString();
+    }
 
     public static String coerceToString(JsonValue value) {
         return value.isString() ? value.asString() : value.toString();

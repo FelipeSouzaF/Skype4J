@@ -33,7 +33,11 @@ import org.jsoup.helper.Validate;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class ContactImpl implements Contact {
@@ -120,7 +124,7 @@ public class ContactImpl implements Contact {
         }
     }
 
-    public ContactImpl(SkypeImpl skype, JsonObject contact) throws ConnectionException {
+    public ContactImpl(SkypeImpl skype, JsonObject contact) throws Exception {
         this.skype = skype;
         update(contact);
     }
@@ -294,85 +298,98 @@ public class ContactImpl implements Contact {
         return skype.getOrLoadChat("8:" + this.username);
     }
 
-    public void update(JsonObject contact) throws ConnectionException {
-        this.username = contact.get("person_id").asString();
-        this.isAuthorized = contact.get("authorized").asBoolean();
-        this.isBlocked = contact.get("blocked").asBoolean();
-        this.displayName = Utils.getString(contact, "display_name");
-        this.avatarURL = Utils.getString(contact, "avatar_url");
-        this.mood = Utils.getString(contact, "mood");
-        this.type = Utils.getString(contact, "type");
-        this.authCertificate = Utils.getString(contact, "auth_certificate");
-        this.status = null;
-        if (contact.get("locations") != null) {
-            JsonObject locations = contact.get("locations").asArray().get(0).asObject();
-            this.country = locations.get("country") == null ? null : locations.get("country").asString();
-            this.city = locations.get("city") == null ? null : locations.get("city").asString();
+    public void update(JsonObject contact) throws Exception {
+        try {    
+            this.username = contact.get("person_id").asString();
+            this.isAuthorized = contact.get("authorized").asBoolean();
+            this.isBlocked = contact.get("blocked").asBoolean();
+            this.displayName = Utils.getString(contact, "display_name");
+            this.avatarURL = Utils.getString(contact, "avatar_url");
+            this.mood = Utils.getString(contact, "mood");
+            this.type = Utils.getString(contact, "type");
+            this.authCertificate = Utils.getString(contact, "auth_certificate");
+            this.phones = "";
+            this.status = null;
+            if (contact.get("locations") != null) {
+                JsonObject locations = contact.get("locations").asArray().get(0).asObject();
+                this.country = locations.get("country") == null ? null : locations.get("country").asString();
+                this.city = locations.get("city") == null ? null : locations.get("city").asString();
+            }
+            JsonObject profile = (JsonObject) contact.get("profile22");
+            if (profile != null) updateProfile(profile);
+        } catch (Exception e) {
+            StringWriter ex = new StringWriter();
+            e.printStackTrace(new PrintWriter(ex));
+            Logger.getLogger("log_skype_manager").log(Level.FINEST, ex.toString());
         }
-        JsonObject profile = (JsonObject) contact.get("profile");
-        updateProfile(profile);
     }
 
     public void updateProfile(JsonObject profile) {
-        JsonObject nameDetails = (JsonObject) profile.get("name");
-        JsonArray phonesArray = (JsonArray) profile.get("phones");
-        String phonesStr = "";
-        if (phonesArray != null){
-            for (int i = 0; i < phonesArray.size(); i++){
-                JsonObject eachPhone = (JsonObject) phonesArray.get(i);
-                if (i > 0) {
-                    phonesStr += ", ";
+        try {
+            JsonObject nameDetails = (JsonObject) profile.get("name");
+            JsonArray phonesArray = (JsonArray) profile.get("phones");
+            String phonesStr = "";
+            if (phonesArray != null){
+                for (int i = 0; i < phonesArray.size(); i++){
+                    JsonObject eachPhone = (JsonObject) phonesArray.get(i);
+                    if (i > 0) {
+                        phonesStr += ", ";
+                    }
+                    phonesStr += eachPhone.get("number").asString();
                 }
-                phonesStr += eachPhone.get("number").asString();
             }
-        }
-        if (nameDetails != null){
-            this.firstName = Utils.getString(nameDetails, "first");
-            this.lastName = Utils.getString(nameDetails, "surname");    
-        } else {
-            this.firstName = Utils.getString(profile, "firstname");
-            this.lastName = Utils.getString(profile, "lastname");
-        }
-        this.birthday = Utils.getString(profile, "birthday");
-        this.phones = phonesStr;
-
-        if (profile.get("gender") != null) {
-            if (profile.get("gender").isNumber()) {
-                this.gender = String.valueOf(profile.get("gender").asInt());
-            } else if (profile.get("gender").isString()) {
-                this.gender = profile.get("gender").asString();
-            } else if (profile.get("gender").isBoolean()) {
-                this.gender = profile.get("gender").asBoolean() ? "1" : "0";
+            if (nameDetails != null){
+                this.firstName = Utils.getString(nameDetails, "first");
+                this.lastName = Utils.getString(nameDetails, "surname");    
             } else {
-                this.gender = profile.get("gender").toString();
+                this.firstName = Utils.getString(profile, "firstname");
+                this.lastName = Utils.getString(profile, "lastname");
             }
-        }
+            this.birthday = Utils.getString(profile, "birthday");
+            this.phones = phonesStr;
 
-        this.language = Utils.getString(profile, "language");
-        this.avatarURL = Utils.getString(profile, "avatar_url");
-
-        if (this.displayName == null)
-            this.displayName = Utils.getString(profile, "displayname");
-        if (this.mood == null)
-            this.mood = Utils.getString(profile, "mood");
-        if (this.richMood == null)
-            this.richMood = Utils.getString(profile, "richMood");
-        if (this.country == null)
-            this.country = Utils.getString(profile, "country");
-        if (this.city == null)
-            this.city = Utils.getString(profile, "city");
-
-        if (this.displayName == null) {
-            if (this.firstName != null) {
-                this.displayName = this.firstName;
-                if (this.lastName != null) {
-                    this.displayName = this.displayName + " " + this.lastName;
+            if (profile.get("gender") != null) {
+                if (profile.get("gender").isNumber()) {
+                    this.gender = String.valueOf(profile.get("gender").asInt());
+                } else if (profile.get("gender").isString()) {
+                    this.gender = profile.get("gender").asString();
+                } else if (profile.get("gender").isBoolean()) {
+                    this.gender = profile.get("gender").asBoolean() ? "1" : "0";
+                } else {
+                    this.gender = profile.get("gender").toString();
                 }
-            } else if (this.lastName != null) {
-                this.displayName = this.lastName;
-            } else {
-                this.displayName = this.username;
             }
+
+            this.language = Utils.getString(profile, "language");
+            this.avatarURL = Utils.getString(profile, "avatar_url");
+
+            if (this.displayName == null)
+                this.displayName = Utils.getString(profile, "displayname");
+            if (this.mood == null)
+                this.mood = Utils.getString(profile, "mood");
+            if (this.richMood == null)
+                this.richMood = Utils.getString(profile, "richMood");
+            if (this.country == null)
+                this.country = Utils.getString(profile, "country");
+            if (this.city == null)
+                this.city = Utils.getString(profile, "city");
+
+            if (this.displayName == null) {
+                if (this.firstName != null) {
+                    this.displayName = this.firstName;
+                    if (this.lastName != null) {
+                        this.displayName = this.displayName + " " + this.lastName;
+                    }
+                } else if (this.lastName != null) {
+                    this.displayName = this.lastName;
+                } else {
+                    this.displayName = this.username;
+                }
+            }
+        } catch (Exception e) {
+            StringWriter ex = new StringWriter();
+            e.printStackTrace(new PrintWriter(ex));
+            Logger.getLogger("log_skype_manager").log(Level.FINEST, ex.toString());
         }
     }
 }

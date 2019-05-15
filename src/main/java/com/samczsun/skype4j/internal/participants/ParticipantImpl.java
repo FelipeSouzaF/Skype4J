@@ -94,8 +94,14 @@ public abstract class ParticipantImpl implements Participant {
     }
 
     public void onMessage(ChatMessage message) {
-        this.messages.add(message);
-        this.messageMap.put(message.getClientId(), message);
+        if (this.messages.isEmpty() && this.messageMap.isEmpty()) {
+            this.messages.add(message);
+            this.messageMap.put(message.getClientId(), message);
+        } else {
+            this.messages.set(0, message);
+            this.messageMap.clear();
+            this.messageMap.put(message.getClientId(), message);
+        }
     }
 
     public void insertMessage(ChatMessage m, int i) {

@@ -56,7 +56,7 @@ public class GuestClient extends SkypeImpl {
     }
 
     @Override
-    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException {
+    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException, Exception {
         JsonObject response = Endpoints.NEW_GUEST
                 .open(this)
                 .as(JsonObject.class)

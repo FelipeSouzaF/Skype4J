@@ -54,7 +54,7 @@ public interface Skype {
      * @throws com.samczsun.skype4j.exceptions.SuspiciousLoginException
      * @throws java.io.IOException
      */
-    void login() throws InvalidCredentialsException, ConnectionException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException;
+    void login() throws InvalidCredentialsException, ConnectionException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException, Exception;
 
     /**
      * Subscribe to the HTTP long polling service.
@@ -155,7 +155,7 @@ public interface Skype {
      *
      * @throws ConnectionException If an exception occured while fetching all contacts
      */
-    void loadAllContacts() throws ConnectionException;
+    void loadAllContacts() throws Exception;
 
 
     /*

@@ -149,7 +149,7 @@ public abstract class SkypeImpl implements Skype {
     }
     
     @Override
-    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException {
+    public void login() throws ConnectionException, InvalidCredentialsException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException, Exception {
         Endpoints.ELIGIBILITY_CHECK.open(this)
                 .expect(200, "You are not eligible to use Skype for Web!")
                 .get();
@@ -396,9 +396,9 @@ public abstract class SkypeImpl implements Skype {
                 .post(new JsonObject().add("endpointFeatures", "Agent"));
     }
 
-    public abstract void getContactRequests(boolean fromWebsocket) throws ConnectionException;
+    public abstract void getContactRequests(boolean fromWebsocket) throws Exception;
 
-    public abstract void updateContactList() throws ConnectionException;
+    public abstract void updateContactList() throws Exception;
 
     public void registerWebSocket() throws ConnectionException, InterruptedException, URISyntaxException, KeyManagementException, NoSuchAlgorithmException, UnsupportedEncodingException {
         boolean needsToRegister = false;
@@ -536,7 +536,7 @@ public abstract class SkypeImpl implements Skype {
         }
     }
 
-    public void reauthenticate() throws ConnectionException, InvalidCredentialsException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException {
+    public void reauthenticate() throws ConnectionException, InvalidCredentialsException, NotParticipatingException, WrongPasswordException, AccountNotFoundException, SuspiciousLoginException, IOException, Exception {
         //todo: keep subscribed until reauth is finished so events aren't lost
         doShutdown();
         login();

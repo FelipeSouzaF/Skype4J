@@ -283,7 +283,11 @@ public abstract class ChatImpl implements Chat {
     // Begin internal access methods
 
     public void onMessage(ChatMessageImpl message) {
-        this.messages.add(message);
+        if (this.messages.isEmpty()) {
+            this.messages.add(message);
+        } else {
+            this.messages.set(0, message);
+        }
         message.getSender().onMessage(message);
     }
 
