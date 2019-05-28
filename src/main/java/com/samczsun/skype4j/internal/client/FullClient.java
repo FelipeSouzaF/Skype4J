@@ -20,7 +20,6 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.samczsun.skype4j.chat.GroupChat;
-import com.samczsun.skype4j.events.SaveContactsEvent;
 import com.samczsun.skype4j.events.contact.ContactRequestEvent;
 import com.samczsun.skype4j.exceptions.AccountNotFoundException;
 import com.samczsun.skype4j.exceptions.ChatNotFoundException;
@@ -165,9 +164,9 @@ public class FullClient extends SkypeImpl {
 
         int accessTokenStart = url.indexOf("access_token=");
         if (accessTokenStart == -1) {
-          IOException e = new IOException("Error while connecting to Live: access token not found.");
-          logger.severe(e.toString());
-          throw e;
+            SuspiciousLoginException e = new SuspiciousLoginException("Error while connecting to Live: access token not found.");
+            logger.severe(e.toString());
+            throw e;
         }
         int accessTokenEnd = url.indexOf('&', accessTokenStart + "access_token=".length());
         if (accessTokenEnd == -1) {

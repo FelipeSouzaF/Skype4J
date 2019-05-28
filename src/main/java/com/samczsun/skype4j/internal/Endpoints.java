@@ -132,7 +132,7 @@ public class Endpoints {
     public static final Endpoints GET_CONTACT_BY_ID = new Endpoints(
             "https://contacts.skype.com/contacts/v1/users/%s/contacts?$filter=id%%20eq%%20%%27%s%%27&reason=default").skypetoken();
     public static final Endpoints BLOCK_CONTACT = new Endpoints(
-            "https://api.skype.com/users/self/contacts/%s/block").skypetoken();
+            "https://%sclient-s.gateway.messenger.live.com/v1/users/ME/conversations/%s/properties?name=conversationblocked").cloud().regtoken();
     public static final Endpoints UNBLOCK_CONTACT = new Endpoints(
             "https://api.skype.com/users/self/contacts/%s/unblock").skypetoken();
     public static final Endpoints AUTHORIZE_CONTACT = new Endpoints(

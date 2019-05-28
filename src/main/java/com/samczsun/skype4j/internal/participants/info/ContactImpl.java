@@ -18,7 +18,6 @@ package com.samczsun.skype4j.internal.participants.info;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
-import com.samczsun.skype4j.Skype;
 import com.samczsun.skype4j.chat.Chat;
 import com.samczsun.skype4j.exceptions.ChatNotFoundException;
 import com.samczsun.skype4j.exceptions.ConnectionException;
@@ -181,6 +180,15 @@ public class ContactImpl implements Contact {
     public void setStatus(String status) {
         this.status = status;
     }
+    
+    @Override
+    public Boolean getIsBlocked() {
+        return this.isBlocked;
+    }
+    
+    public void setIsBlocked(boolean blocked) {
+        this.isBlocked = blocked;
+    }
 
     @Override
     public BufferedImage getAvatarPicture() throws ConnectionException {
@@ -275,10 +283,12 @@ public class ContactImpl implements Contact {
 
     @Override
     public void block(boolean reportAbuse) throws ConnectionException {
+        JsonObject data = new JsonObject();
+        data.add("conversationblocked", reportAbuse);
         Endpoints.BLOCK_CONTACT
                 .open(skype, this.username)
-                .expect(201, "While unblocking contact")
-                .put("reporterIp=127.0.0.1&uiVersion=" + Skype.VERSION + (reportAbuse ? "&reportAbuse=1" : ""));
+                .expect(200, "While unblocking contact")
+                .put(data);
         updateContactInfo();
     }
 
@@ -315,7 +325,7 @@ public class ContactImpl implements Contact {
                 this.country = locations.get("country") == null ? null : locations.get("country").asString();
                 this.city = locations.get("city") == null ? null : locations.get("city").asString();
             }
-            JsonObject profile = (JsonObject) contact.get("profile22");
+            JsonObject profile = (JsonObject) contact.get("profile");
             if (profile != null) updateProfile(profile);
         } catch (Exception e) {
             StringWriter ex = new StringWriter();

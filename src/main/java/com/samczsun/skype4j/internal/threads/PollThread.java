@@ -82,6 +82,7 @@ public class PollThread extends Thread {
 
                     if (pendingException != null) {
                         skype.handleError(ErrorSource.POLLING_SKYPE, pendingException, false);
+                        pendingException = null;
                         continue;
                     }
 

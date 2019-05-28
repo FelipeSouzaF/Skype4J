@@ -639,6 +639,15 @@ public abstract class SkypeImpl implements Skype {
     public Collection<Contact> getAllContacts() {
         return Collections.unmodifiableCollection(this.allContacts.values());
     }
+    
+    public Map<String, Boolean> getAllBlockedContacts() {
+        Map<String, Boolean> allBlockedContacts = new HashMap();
+        Collection<Contact> allContacts = getAllContacts();
+        for(Contact contact : allContacts){
+            allBlockedContacts.put(contact.getUsername().split(":", 2)[1], contact.getIsBlocked());
+        }
+        return allBlockedContacts;
+    }
 
     public void handleError(ErrorSource errorSource, Throwable throwable, boolean shutdown) {
         for (ErrorHandler handler : errorHandlers) {
@@ -731,5 +740,15 @@ public abstract class SkypeImpl implements Skype {
     
     public void setAppendLogFile(boolean appendLogFile) {
         this.appendLogFile = appendLogFile;
+    }
+    
+    @Override
+    public void block(boolean reportAbuse, String contact) throws Exception {
+        JsonObject data = new JsonObject();
+        data.add("conversationblocked", reportAbuse);
+        Endpoints.BLOCK_CONTACT
+                .open(this, contact)
+                .expect(200, "While unblocking contact")
+                .put(data);
     }
 }

@@ -219,4 +219,6 @@ public interface Skype {
     void setVisibility(Visibility visibility) throws ConnectionException;
 
     void handleError(ErrorSource errorSource, Throwable throwable, boolean shutdown);
+    
+    void block(boolean reportAbuse, String contact) throws Exception;
 }

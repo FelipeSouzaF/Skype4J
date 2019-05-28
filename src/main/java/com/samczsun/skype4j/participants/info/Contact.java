@@ -56,11 +56,15 @@ public interface Contact {
      */
     String getLastName();
     
+    Boolean getIsBlocked();
+    
     String getPhoneNumbers();
     
     String getStatus();
     
     void setStatus(String status);
+    
+    void setIsBlocked(boolean blocked);
     /**
      * Get the avatar as a {@link BufferedImage}. Can return null if not found.
      * Once the image is loaded it is cached

@@ -94,8 +94,15 @@ public enum EventType {
     },
     CONVERSATION_UPDATE("ConversationUpdate") {
         @Override
-        public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException {
-
+        public void handle(SkypeImpl skype, JsonObject resource) throws Exception {
+            JsonObject conversationProperties = resource.get("resource").asObject();
+            conversationProperties = conversationProperties.get("properties").asObject();
+            String getConversationAvaiability = Utils.getString(conversationProperties, "conversationblocked", "");
+            if (!getConversationAvaiability.equals("")) {
+                String loginLive = Utils.getString(resource, "resourceLink");
+                String loginLiveSplit[] = loginLive.split("/");
+                skype.getContact(loginLiveSplit[7]).setIsBlocked(Boolean.valueOf(getConversationAvaiability));
+            }
         }
     },
     THREAD_UPDATE("ThreadUpdate") {
@@ -123,7 +130,7 @@ public enum EventType {
         return byValue.get(eventType);
     }
 
-    public abstract void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, IOException;
+    public abstract void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, IOException, Exception;
 
     static {
         for (EventType type : values()) {
