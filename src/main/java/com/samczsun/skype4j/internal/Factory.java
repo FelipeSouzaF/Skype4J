@@ -60,7 +60,7 @@ public class Factory {
         throw new IllegalArgumentException(String.format("Unknown chat type with identity %s", identity));
     }
 
-    public static ParticipantImpl createParticipant(SkypeImpl client, ChatImpl chat, String id) throws ConnectionException {
+    public static ParticipantImpl createParticipant(SkypeImpl client, ChatImpl chat, String id) throws Exception {
         Validate.notNull(client, "Client must not be null");
         Validate.notNull(chat, "Chat must not be null");
         Validate.notEmpty(id, "Identity must not be null/empty");

@@ -110,9 +110,10 @@ public class SkypeWebSocket extends WebSocketClient {
             int event = body.get("evt").asInt();
             if (event == 6) {
                 try {
-                    skype.updateContactList();
-                    SaveContactsEvent eventContacts = new SaveContactsEvent();
-                    skype.getEventDispatcher().callEvent(eventContacts);
+//                    Removido para evitar a atualização desnecessária da lista de contatos completa quando bloquear um contato pela API
+//                    skype.updateContactList();
+//                    SaveContactsEvent eventContacts = new SaveContactsEvent();
+//                    skype.getEventDispatcher().callEvent(eventContacts);
                 } catch (Exception e) {
                     skype.handleError(ErrorSource.UPDATING_CONTACT_LIST, e, false);
                 }

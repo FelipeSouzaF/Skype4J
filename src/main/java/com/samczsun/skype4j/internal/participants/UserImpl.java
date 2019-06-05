@@ -16,9 +16,12 @@
 
 package com.samczsun.skype4j.internal.participants;
 
-import com.samczsun.skype4j.exceptions.ConnectionException;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.samczsun.skype4j.internal.Endpoints;
 import com.samczsun.skype4j.internal.SkypeImpl;
 import com.samczsun.skype4j.internal.chat.ChatImpl;
+import com.samczsun.skype4j.internal.participants.info.ContactImpl;
 import com.samczsun.skype4j.participants.info.Contact;
 import com.samczsun.skype4j.participants.User;
 
@@ -26,8 +29,9 @@ import com.samczsun.skype4j.participants.User;
 public class UserImpl extends ParticipantImpl implements User {
     private Contact contactRep;
 
-    public UserImpl(SkypeImpl skype, ChatImpl chat, String id) throws ConnectionException {
+    public UserImpl(SkypeImpl skype, ChatImpl chat, String id) throws Exception {
         super(skype, chat, id);
+        contactRep = new ContactImpl(skype, "8:"+getId().substring(2), updateDisplayName());
     }
 
     @Override
@@ -39,6 +43,21 @@ public class UserImpl extends ParticipantImpl implements User {
     public String getDisplayName() {
         if (contactRep == null) return null;
         return contactRep.getDisplayName();
+    }
+    
+    public JsonObject updateDisplayName() throws Exception {
+        JsonArray usernames = new JsonArray();
+        usernames.add(this.getUsername());
+
+        JsonArray info = Endpoints.PROFILE_INFO_CHAT_GROUP
+                .open(getClient())
+                .expect(200, "While getting contact info")
+                .as(JsonArray.class)
+                .post(new JsonObject()
+                        .add("usernames", usernames)
+                );
+        JsonObject displayNameObj = info.get(0).asObject();
+        return displayNameObj;
     }
 
     @Override
