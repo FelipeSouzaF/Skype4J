@@ -58,6 +58,8 @@ public interface Contact {
     
     Boolean getIsBlocked();
     
+    Integer getIsBlockedInt();
+    
     String getPhoneNumbers();
     
     String getStatus();

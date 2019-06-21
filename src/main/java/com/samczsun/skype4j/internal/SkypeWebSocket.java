@@ -111,9 +111,9 @@ public class SkypeWebSocket extends WebSocketClient {
             if (event == 6) {
                 try {
 //                    Removido para evitar a atualização desnecessária da lista de contatos completa quando bloquear um contato pela API
-//                    skype.updateContactList();
-//                    SaveContactsEvent eventContacts = new SaveContactsEvent();
-//                    skype.getEventDispatcher().callEvent(eventContacts);
+                    skype.updateContactList();
+                    SaveContactsEvent eventContacts = new SaveContactsEvent();
+                    skype.getEventDispatcher().callEvent(eventContacts);
                 } catch (Exception e) {
                     skype.handleError(ErrorSource.UPDATING_CONTACT_LIST, e, false);
                 }

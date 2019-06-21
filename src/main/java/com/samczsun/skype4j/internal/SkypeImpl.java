@@ -640,11 +640,11 @@ public abstract class SkypeImpl implements Skype {
         return Collections.unmodifiableCollection(this.allContacts.values());
     }
     
-    public Map<String, Boolean> getAllBlockedContacts() {
-        Map<String, Boolean> allBlockedContacts = new HashMap();
+    public Map<String, Integer> getAllBlockedContacts() {
+        Map<String, Integer> allBlockedContacts = new HashMap();
         Collection<Contact> allContacts = getAllContacts();
         for(Contact contact : allContacts){
-            allBlockedContacts.put(contact.getUsername().split(":", 2)[1], contact.getIsBlocked());
+            allBlockedContacts.put(contact.getUsername().split(":", 2)[1], contact.getIsBlockedInt());
         }
         return allBlockedContacts;
     }

@@ -186,6 +186,11 @@ public class ContactImpl implements Contact {
         return this.isBlocked;
     }
     
+    @Override
+    public Integer getIsBlockedInt() {
+        return this.isBlocked == true ? 1 : 0;
+    }
+    
     public void setIsBlocked(boolean blocked) {
         this.isBlocked = blocked;
     }
