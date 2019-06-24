@@ -18,6 +18,7 @@ package com.samczsun.skype4j.internal.participants;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
+import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.internal.Endpoints;
 import com.samczsun.skype4j.internal.SkypeImpl;
 import com.samczsun.skype4j.internal.chat.ChatImpl;
@@ -29,7 +30,7 @@ import com.samczsun.skype4j.participants.User;
 public class UserImpl extends ParticipantImpl implements User {
     private Contact contactRep;
 
-    public UserImpl(SkypeImpl skype, ChatImpl chat, String id) throws Exception {
+    public UserImpl(SkypeImpl skype, ChatImpl chat, String id) throws ConnectionException, Exception {
         super(skype, chat, id);
         contactRep = new ContactImpl(skype, "8:"+getId().substring(2), updateDisplayName());
     }

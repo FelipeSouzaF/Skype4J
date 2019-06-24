@@ -74,7 +74,7 @@ public enum MessageType {
     },
     TEXT_INTERNAL("TextInternalShouldNotBeUsedOutside") {
         @Override
-        public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, IOException {
+        public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, IOException, Exception {
             ChatImpl chat = getChat(resource, skype);
             ParticipantImpl user = getSender(resource, chat);
 
@@ -148,13 +148,13 @@ public enum MessageType {
     },
     TEXT("Text") {
         @Override
-        public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, IOException {
+        public void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, IOException, Exception {
             MessageType.TEXT_INTERNAL.handle(skype, resource);
         }
     },
     RICH_TEXT("RichText") {
         @Override
-        public void handle(final SkypeImpl skype, JsonObject resource) throws SkypeException, IOException {
+        public void handle(final SkypeImpl skype, JsonObject resource) throws SkypeException, IOException, Exception {
             String content = Utils.getString(resource, "content");
             Validate.notNull(content, "Null content");
             Matcher matcher = URIOBJECT.matcher(content);
@@ -361,7 +361,7 @@ public enum MessageType {
     },
     THREAD_ACTIVITY_ADD_MEMBER("ThreadActivity/AddMember") {
         @Override
-        public void handle(SkypeImpl skype, JsonObject resource) throws ConnectionException, ChatNotFoundException, IOException {
+        public void handle(SkypeImpl skype, JsonObject resource) throws ConnectionException, ChatNotFoundException, IOException, Exception {
             ChatImpl chat = getChat(resource, skype);
             UserImpl initiator = null;
             try {
@@ -691,7 +691,7 @@ public enum MessageType {
         return this.value;
     }
 
-    public abstract void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, IOException;
+    public abstract void handle(SkypeImpl skype, JsonObject resource) throws SkypeException, IOException, Exception;
 
     static {
         for (MessageType type : values()) {

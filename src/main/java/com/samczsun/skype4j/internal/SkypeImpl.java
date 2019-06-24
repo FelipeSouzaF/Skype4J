@@ -212,6 +212,8 @@ public abstract class SkypeImpl implements Skype {
                     throw new RuntimeException(e);
                 } catch (IllegalArgumentException e) {
                     handleError(null, new RuntimeException(value.toString(), e), false);
+                } catch (Exception ex) {
+                    Logger.getLogger(SkypeImpl.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 
@@ -312,7 +314,7 @@ public abstract class SkypeImpl implements Skype {
     }
 
     @Override
-    public ChatImpl loadChat(String name) throws ConnectionException, ChatNotFoundException {
+    public ChatImpl loadChat(String name) throws ConnectionException, ChatNotFoundException, Exception {
         if (!allChats.containsKey(name)) {
             ChatImpl chat = Factory.createChat(this, name);
             allChats.put(name, chat);
@@ -323,7 +325,7 @@ public abstract class SkypeImpl implements Skype {
     }
 
     @Override
-    public ChatImpl getOrLoadChat(String name) throws ConnectionException, ChatNotFoundException {
+    public ChatImpl getOrLoadChat(String name) throws ConnectionException, ChatNotFoundException, Exception {
         if (allChats.containsKey(name)) {
             return allChats.get(name);
         } else {
@@ -332,7 +334,7 @@ public abstract class SkypeImpl implements Skype {
     }
 
     @Override
-    public GroupChat joinChat(String id) throws ConnectionException, ChatNotFoundException, NoPermissionException {
+    public GroupChat joinChat(String id) throws ConnectionException, ChatNotFoundException, NoPermissionException, Exception {
         Validate.isTrue(id.startsWith("19:") && id.endsWith("@thread.skype"), "Invalid chat id");
         JsonObject obj = new JsonObject();
         obj.add("role", "User");

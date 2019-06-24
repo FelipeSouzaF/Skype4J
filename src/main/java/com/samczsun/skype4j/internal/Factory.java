@@ -34,7 +34,7 @@ import org.jsoup.helper.Validate;
 
 public class Factory {
 
-    public static ChatImpl createChat(SkypeImpl client, String identity) throws ConnectionException, ChatNotFoundException {
+    public static ChatImpl createChat(SkypeImpl client, String identity) throws ConnectionException, ChatNotFoundException, Exception {
         Validate.notNull(client, "Client must not be null");
         Validate.notEmpty(identity, "Identity must not be null/empty");
 
@@ -60,7 +60,7 @@ public class Factory {
         throw new IllegalArgumentException(String.format("Unknown chat type with identity %s", identity));
     }
 
-    public static ParticipantImpl createParticipant(SkypeImpl client, ChatImpl chat, String id) throws Exception {
+    public static ParticipantImpl createParticipant(SkypeImpl client, ChatImpl chat, String id) throws ConnectionException, Exception {
         Validate.notNull(client, "Client must not be null");
         Validate.notNull(chat, "Chat must not be null");
         Validate.notEmpty(id, "Identity must not be null/empty");

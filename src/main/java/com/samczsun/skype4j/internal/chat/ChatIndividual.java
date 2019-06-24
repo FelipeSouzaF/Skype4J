@@ -36,7 +36,7 @@ public class ChatIndividual extends ChatImpl implements IndividualChat {
     }
 
     @Override
-    public void load() throws ConnectionException {
+    public void load() throws ConnectionException, Exception {
         UserImpl partner = (UserImpl) Factory.createParticipant(getClient(), this, getIdentity());
         this.users.put(partner.getId().toLowerCase(), partner);
 

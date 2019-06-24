@@ -59,7 +59,7 @@ public class ChatGroup extends ChatImpl implements GroupChat {
         super(skype, identity);
     }
 
-    public void load() throws ConnectionException, ChatNotFoundException {
+    public void load() throws ConnectionException, ChatNotFoundException, Exception {
         JsonObject object = Endpoints.CHAT_INFO_URL
                 .open(getClient(), getIdentity())
                 .as(JsonObject.class)
@@ -141,7 +141,7 @@ public class ChatGroup extends ChatImpl implements GroupChat {
         }
     }
 
-    public void addUser(String username) throws ConnectionException {
+    public void addUser(String username) throws ConnectionException, Exception {
         username = "8:" + username;
         if (!users.containsKey(username.toLowerCase())) {
             ParticipantImpl user = Factory.createParticipant(getClient(), this, username);

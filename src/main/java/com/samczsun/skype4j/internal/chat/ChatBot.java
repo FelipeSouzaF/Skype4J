@@ -46,7 +46,7 @@ public class ChatBot extends ChatImpl implements BotChat {
     }
 
     @Override
-    public void load() throws ConnectionException {
+    public void load() throws ConnectionException, Exception {
         BotImpl botImpl = (BotImpl) Factory.createParticipant(getClient(), this, getIdentity());
         botImpl.setInfo(getClient().getOrLoadBotInfo(botImpl.getId()));
         this.users.put(botImpl.getId().toLowerCase(), botImpl);

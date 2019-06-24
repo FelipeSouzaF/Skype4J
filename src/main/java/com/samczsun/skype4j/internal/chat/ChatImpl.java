@@ -304,11 +304,11 @@ public abstract class ChatImpl implements Chat {
         putOption("alertmatches", JsonValue.valueOf(keyword), false);
     }
 
-    public abstract void addUser(String username) throws ConnectionException;
+    public abstract void addUser(String username) throws ConnectionException, Exception;
 
     public abstract void removeUser(String username);
 
-    public abstract void load() throws ConnectionException, ChatNotFoundException;
+    public abstract void load() throws ConnectionException, ChatNotFoundException, Exception;
 
     protected void putOption(String option, JsonValue value, boolean global) throws ConnectionException {
         JsonObject obj = new JsonObject();

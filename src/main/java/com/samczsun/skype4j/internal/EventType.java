@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 public enum EventType {
     NEW_MESSAGE("NewMessage") {
         @Override
-        public void handle(SkypeImpl skype, JsonObject eventObj) throws SkypeException, IOException {
+        public void handle(SkypeImpl skype, JsonObject eventObj) throws SkypeException, IOException, Exception {
 
             JsonObject resource = eventObj.get("resource").asObject();
             String type = Utils.getString(resource, "messagetype");

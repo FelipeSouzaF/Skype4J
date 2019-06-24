@@ -92,7 +92,7 @@ public interface Skype {
      * @throws ConnectionException   If an error occurs during connection
      * @throws ChatNotFoundException If this skype account is not a member of the chat
      */
-    Chat loadChat(String name) throws ConnectionException, ChatNotFoundException;
+    Chat loadChat(String name) throws ConnectionException, ChatNotFoundException, Exception;
 
     /**
      * Get a chat, and if said chat doesn't exist, load it
@@ -102,7 +102,7 @@ public interface Skype {
      * @throws ConnectionException   If an exception occurs while fetching chat details
      * @throws ChatNotFoundException If the chat does not exist
      */
-    Chat getOrLoadChat(String name) throws ConnectionException, ChatNotFoundException;
+    Chat getOrLoadChat(String name) throws ConnectionException, ChatNotFoundException, Exception;
 
     /**
      * Join the chat with the given id in the format of 19:xxxxx@thread.skype
@@ -113,7 +113,7 @@ public interface Skype {
      * @throws ChatNotFoundException If the chat does not exist
      * @throws NoPermissionException If the chat is not public
      */
-    GroupChat joinChat(String chatId) throws ConnectionException, ChatNotFoundException, NoPermissionException;
+    GroupChat joinChat(String chatId) throws ConnectionException, ChatNotFoundException, NoPermissionException, Exception;
 
     /**
      * Load amount of chats in the past
