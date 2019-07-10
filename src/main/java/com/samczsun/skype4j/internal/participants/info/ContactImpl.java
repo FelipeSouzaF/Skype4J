@@ -128,6 +128,21 @@ public class ContactImpl implements Contact {
         update(contact);
     }
     
+    public ContactImpl(SkypeImpl skype, String contact) throws Exception {
+        this.skype = skype;
+        try {    
+            this.username = contact;
+            this.isBlocked = true;
+            this.displayName = null;
+            this.phones = "";
+            this.status = null;
+        } catch (Exception e) {
+            StringWriter ex = new StringWriter();
+            e.printStackTrace(new PrintWriter(ex));
+            Logger.getLogger("log_skype_manager").log(Level.FINEST, ex.toString());
+        }
+    }
+    
     public ContactImpl(SkypeImpl skype) throws ConnectionException {
         this.skype = skype;
     }
@@ -310,7 +325,12 @@ public class ContactImpl implements Contact {
 
     @Override
     public Chat getPrivateConversation() throws ConnectionException, ChatNotFoundException {
-        return skype.getOrLoadChat("8:" + this.username);
+        try {
+            return skype.getOrLoadChat("8:" + this.username);
+        } catch (Exception ex) {
+            Logger.getLogger(ContactImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     public void update(JsonObject contact) throws Exception {

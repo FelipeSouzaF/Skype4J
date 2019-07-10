@@ -263,7 +263,12 @@ public class FullClient extends SkypeImpl {
                 }
                 i++;
             }
-
+            for(JsonValue value : object.get("blocklist").asArray()) {
+                JsonObject obj = value.asObject();
+                if (!this.allContacts.containsKey(obj.get("mri").asString())) {
+                    this.allContacts.put(obj.get("mri").asString(), new ContactImpl(this, obj.get("mri").asString()));
+                }
+            }
 
         } catch (Exception e) {
             logger.severe("Error while send get request to: " + Endpoints.GET_ALL_CONTACTS.url() + e.getMessage());
@@ -321,6 +326,12 @@ public class FullClient extends SkypeImpl {
                 }
                 i++;
             }
+            for(JsonValue value : object.get("blocklist").asArray()) {
+                JsonObject obj = value.asObject();
+                if (!this.allContacts.containsKey(obj.get("mri").asString())) {
+                    this.allContacts.put(obj.get("mri").asString(), new ContactImpl(this, obj.get("mri").asString()));
+                }
+            }
         } catch (Exception e) {
             logger.severe("Error while send get request to: " + Endpoints.GET_ALL_CONTACTS.url() + e.getMessage());
         }
@@ -348,10 +359,13 @@ public class FullClient extends SkypeImpl {
                 return (GroupChat) this.getOrLoadChat(id);
             } catch (ChatNotFoundException e) {
                 throw new RuntimeException(e);
+            } catch (Exception ex) {
+                Logger.getLogger(FullClient.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
             throw ExceptionHandler.generateException("No chat location", con);
         }
+        return null;
     }
     
     private static void setProfileInfo(SkypeImpl skype) throws ConnectionException {
