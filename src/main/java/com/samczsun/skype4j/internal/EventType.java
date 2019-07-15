@@ -18,6 +18,7 @@ package com.samczsun.skype4j.internal;
 
 import com.eclipsesource.json.JsonObject;
 import com.samczsun.skype4j.events.StatusEvent;
+import com.samczsun.skype4j.events.contact.ContactBlockedEvent;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import com.samczsun.skype4j.exceptions.SkypeException;
 import org.jsoup.helper.Validate;
@@ -102,6 +103,8 @@ public enum EventType {
                 String loginLive = Utils.getString(resource, "resourceLink");
                 String loginLiveSplit[] = loginLive.split("/");
                 skype.getContact(loginLiveSplit[7]).setIsBlocked(Boolean.valueOf(getConversationAvaiability));
+                ContactBlockedEvent event = new ContactBlockedEvent(loginLiveSplit[7], Boolean.valueOf(getConversationAvaiability));
+                skype.getEventDispatcher().callEvent(event);
             }
         }
     },
