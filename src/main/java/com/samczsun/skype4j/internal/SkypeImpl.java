@@ -721,7 +721,7 @@ public abstract class SkypeImpl implements Skype {
         this.connectedEndpointsSize = allEndpoints.size();
     }
     public String getEndpointId() {
-        return this.endpointId;
+        return this.endpointId == null ? "" : this.endpointId;
     }
     
     public void setDebug(Path path) throws IOException {
