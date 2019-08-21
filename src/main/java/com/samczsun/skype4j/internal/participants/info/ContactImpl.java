@@ -338,7 +338,7 @@ public class ContactImpl implements Contact {
             this.username = contact.get("person_id").asString();
             this.isAuthorized = contact.get("authorized").asBoolean();
             this.isBlocked = contact.get("blocked").asBoolean();
-            this.displayName = Utils.getString(contact, "display_name").replaceAll("[&<>/\",]", "");
+            this.displayName = Utils.getString(contact, "display_name").replaceAll("[&<>/\",']", "");
             this.avatarURL = Utils.getString(contact, "avatar_url");
             this.mood = Utils.getString(contact, "mood");
             this.type = Utils.getString(contact, "type");
@@ -423,7 +423,7 @@ public class ContactImpl implements Contact {
             }
             
             if (!this.displayName.isEmpty()) {
-                this.displayName.replaceAll("[&<>/\",]", "");
+                this.displayName.replaceAll("[&<>/\",']", "");
             }
         } catch (Exception e) {
             StringWriter ex = new StringWriter();
